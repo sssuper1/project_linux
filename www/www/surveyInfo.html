@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+<meta http-equiv="Expires" content="0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-control" content="no-cache">
+<meta http-equiv="Cache" content="no-cache">
+	<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all"/>
+	<link href="css/my_style.css" rel="stylesheet" type="text/css" media="all"/>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<script>
+
+var devid=[];
+var amp=[];
+
+    var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function(){
+	if(xhr.readyState == 4&&xhr.status == 200){ //根据返回状态值是否正确若成功执行下面语句
+	var xmlDoc = xhr.responseXML;//取得返回请求
+	var root = xmlDoc.getElementsByTagName("root")[0];//识别根标志root
+	var data = root.getElementsByTagName("data");//识别子标志data
+
+	devid[0]=data[0].childNodes[0].nodeValue;
+for(i=1;i<302;i++){
+	amp[i-1]=data[i].childNodes[0].nodeValue;
+	}
+}
+}
+
+var intervalId;
+
+intervalId = setInterval(function () {
+    xhr.open('GET', "cgi-bin/csurveyInfo", true);//打开后端文件的路径
+    xhr.send();//向后端发送请求
+}, 1000);
+
+    xhr.open('GET', "cgi-bin/csurveyInfo", true);//打开后端文件的路径
+    xhr.send();//向后端发送请求
+</script>
+</head>
+<body style="height: 100%; margin: 0">
+  <div id="container" style="height: 100%"></div>
+
+  
+  <script type="text/javascript" src="./echarts.js"></script>
+
+
+  <script type="text/javascript">
+    var dom = document.getElementById('container');
+    var myChart = echarts.init(dom, null, {
+      renderer: 'canvas',
+      useDirtyRect: false
+    });
+    var app = {};
+    
+    var option;
+
+    let fre = [];
+
+for (let i = 0; i < 301; i++) {
+  fre.push([i+1400+'MHz']);
+}
+option = {
+  tooltip: {
+    trigger: 'axis',
+    position: function (pt) {
+      return [pt[0], '20%'];
+    }
+  },
+  title: {
+    left: 'center',
+    text: '频谱扫描-设备'+devid
+  },
+
+  xAxis: {
+    type: 'category',
+    boundaryGap: false,
+    data: fre
+  },
+  yAxis: {
+    type: 'value',
+	axisLabel: {
+      formatter: '{value} dBm'
+    },
+    boundaryGap: ['100%', '0%']
+  },
+  dataZoom: [
+    {
+      type: 'inside',
+      start: 0,
+      end: 10
+    },
+    {
+      start: 0,
+      end: 10
+    }
+  ],
+  series: [
+    {
+      name: '频点幅值',
+      type: 'line',
+      symbol: 'none',
+      sampling: 'lttb',
+      itemStyle: {
+        color: 'rgb(255, 70, 131)'
+      },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          {
+            offset: 0,
+            color: 'rgb(255, 158, 68)'
+          },
+          {
+            offset: 1,
+            color: 'rgb(255, 70, 131)'
+          }
+        ])
+      },
+      data: amp
+    }
+  ]
+};
+
+    if (option && typeof option === 'object') {
+      myChart.setOption(option);
+    }
+
+    window.addEventListener('resize', myChart.resize);
+  </script>
+</body>
+</html>

@@ -794,24 +794,24 @@ typedef struct ST_NEIGHINFO{
 }stNeighInfo;
 
 typedef struct ST_INDATA{
-	char name[20];
-	char value[24];
-	char state[4];
-	char lib[4];
-}stInData;
+    char name[20];        // 字段名/键名 (Key)。比如 "ipaddr", "device", "rf_freq", "snr1"
+    char value[24];       // 字段值 (Value)。为了通用，所有类型的数据（包括整型、浮点型）在这里都被 sprintf 转成了字符串保存
+    char state[4];        // 状态标志位 (State)。通常填 "1" 或 "0"，用于标记该数据是否刚被更新（脏位），或者是否有效
+    char lib[4];          // 库/来源标志 (Lib)。在特定的数据库操作中，用来标识该数据的来源或者权限类型（比如 '0' 代表内部默认，'1' 代表外部修改等）
+} stInData;
 
 typedef struct ST_SYSTEMINFO{
-	char ipaddr[16];
-	char runtimeid[24];
-	int device;
-	char g_ver[12];
-	int rf_freq;
-	int m_chanbw;
-	int m_txpower;
-	int m_rate;
-	emType m_type;
-	stNeighInfo m_stNeighInfo[32];
-}stSysteminfo;
+    char ipaddr[16];      // 节点IP地址，例如 "192.168.2.1" (最大长度15个字符+1个结束符'\0')
+    char runtimeid[24];   // 运行时间ID或时间戳，可能用于记录设备本次启动/运行的标识
+    int device;           // 设备ID（Node ID），即当前节点在Mesh网络中的编号（如 SELFID）
+    char g_ver[12];       // 软件/固件版本号（Version），例如 "V1.0.1"
+    int rf_freq;          // 射频中心工作频率（Radio Frequency），单位通常是MHz（如 1478）
+    int m_chanbw;         // 工作信道带宽（Channel Bandwidth），例如 5, 10, 20 (MHz)
+    int m_txpower;        // 发射功率（Transmit Power），控制设备发送信号的强度
+    int m_rate;           // 传输速率/调制编码策略（MCS Rate档位）
+    emType m_type;        // 设备类型（枚举类型 emType），比如是网关节点、普通邻居节点等
+    stNeighInfo m_stNeighInfo[32]; // 邻居节点信息数组。假设网络最大容量为32个节点，这里存放它听到的所有邻居的状态
+} stSysteminfo;
 
 typedef struct ST_SURVEYINFO
 {
@@ -838,10 +838,10 @@ typedef struct ST_NODE{
 }stNode;
 
 typedef struct ST_NBIFNO{
-	int nbid1;
-	int snr1;
-	int getlv1;
-	int flowrate1;
+	int nbid1;		//邻居ID1
+	int snr1;	   //邻居1信噪比
+	int getlv1;    //邻居1信号强度
+	int flowrate1; //邻居1流量
 }stNbInfo;
 
 typedef struct ST_LINK{

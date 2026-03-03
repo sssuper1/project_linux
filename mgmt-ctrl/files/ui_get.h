@@ -51,14 +51,14 @@ typedef enum
 }CMD_TYPE;
 
 typedef struct {
-    uint16_t head;
-    uint8_t  cmd_no;
-    uint8_t  ack_flag;
-    uint8_t  length;
-    uint32_t value_addr;
-    uint8_t  value;
-    uint16_t crc;
-    uint16_t tail;
+    uint16_t head;//帧头
+    uint8_t  cmd_no;//1：工控屏收  2：工控屏发
+    uint8_t  ack_flag;//消息类型(主动发的消息ff,回复00,错误01)
+    uint8_t  length;//参数数值长度
+    uint32_t value_addr;// 参数地址
+    uint8_t  value; //参数值
+    uint16_t crc; //校验
+    uint16_t tail;//帧尾
 
 
 

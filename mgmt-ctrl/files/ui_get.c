@@ -772,10 +772,12 @@ void process_cmd_info(uint32_t cmd_addr, uint32_t cmd_value)
 	bool isset =FALSE;
 	char bcast_buf[1000];
 	uint8_t cmd[200];
+
 	INT8 buffer[sizeof(Smgmt_header) + sizeof(Smgmt_set_param)];
 	INT32 buflen = sizeof(Smgmt_header) + sizeof(Smgmt_set_param);
 	Smgmt_header* mhead = (Smgmt_header*)buffer;
-	Smgmt_set_param* mparam = (Smgmt_set_param*)mhead->mgmt_data;
+	Smgmt_set_param* mparam = (Smgmt_set_param*)mhead->mgmt_data;、
+
 	bzero(buffer, buflen);
 	memset(cmd,0,sizeof(cmd));
 	mhead->mgmt_head = htons(HEAD);
@@ -906,7 +908,7 @@ void process_cmd_info(uint32_t cmd_addr, uint32_t cmd_value)
 		{
 			case 0:   //olsr
 				printf("[UI DEBUG] set route olsr \r\n");
-				ret = system("/home/root/cs_olsr.sh");
+				ret = system("/home/root/cs_olsr.sh");//切换路由协议脚本
 				if(ret == -1) printf("change olsr failed\r\n");
 				sprintf(cmd,
 					"sed -i \"s/router .*/router %d/g\" /etc/node_xwg",
@@ -1090,13 +1092,13 @@ void process_uart_info(int fd,char* info, int len)
 	// }
 	// printf("\r\n");
 	
-	if (uart_buf[0] != 0xd5 || uart_buf[1] != 0x5d)
+	if (uart_buf[0] != 0xd5 || uart_buf[1] != 0x5d)//帧头校验
 	{
 		printf("ERROR:uart head error\r\n");
 		return;
 	}
 
-	if (uart_buf[len - 2] != 0x5d || uart_buf[len - 1] != 0xd5)
+	if (uart_buf[len - 2] != 0x5d || uart_buf[len - 1] != 0xd5)//帧尾校验
 	{
 		printf("ERROR:uart tail error\r\n");
 		return;
@@ -1115,7 +1117,7 @@ void process_uart_info(int fd,char* info, int len)
 	cmd_len = uart_buf[4];   //参数数值长度
 	uint32_t addr = (uart_buf[5] << 24) | (uart_buf[6] << 16) | (uart_buf[7] << 8) | (uart_buf[8]);
 	addr = htonl(addr);
-	param_len = cmd_len - 1 - 4;
+	param_len = cmd_len - 1 - 4;//参数长度 = 总长度 - 命令字长度(1) - 地址长度(4)
 
 	//printf("param len %d \r\n");
 
@@ -1266,11 +1268,11 @@ void send_member_request(uint8_t id)
 
 	MEM_REQUEST_FRAME info;
 	memset(&info,0,sizeof(MEM_REQUEST_FRAME));
-	info.head=htons(0x4c4a);
-	info.src_id=SELFID;
-	info.dst_id=id;
-	info.type=0;
-	info.tail=htons(0x6467);
+	info.head=htons(0x4c4a);  // 局域网通信的“暗号”头
+	info.src_id=SELFID;       // 告诉对方：我是 1 号
+	info.dst_id=id;           // 告诉对方：我要找 5 号
+	info.type=0;              // 【核心】type=0 代表“这是一个提问（Request）”
+	info.tail=htons(0x6467);  // 局域网通信的“暗号”尾
 
 	ret=SendUDPClient(s_request,(char*)&info,sizeof(MEM_REQUEST_FRAME),&addr);
 	if(ret<=0)
@@ -1562,7 +1564,7 @@ int get_interface_stats(Info_0x06_Statistics* info_stat) {
         perror("popen failed");
         return -1;
     }
-    
+    // 3. 一行一行地把 ifconfig 的输出读进 buffer 里
     while (fgets(buffer, sizeof(buffer), fp) != NULL) {
         // 修改想要读取的参数
         if (strstr(buffer, "RX packets") != NULL) {
@@ -1637,7 +1639,7 @@ void write_ui_Thread(void* arg)
     };
 
 	//sleep(30);
-	 read_node_xwg_file("/etc/node_xwg",param_pairs,MAX_XWG_PAIRS);
+	read_node_xwg_file("/etc/node_xwg",param_pairs,MAX_XWG_PAIRS);
 	// sleep(1);
 	Send_0x04(ui_Fd,(void*)&param_pairs,sizeof(Node_Xwg_Pairs)*MAX_XWG_PAIRS);
 	memset(&stat_info,0,sizeof(Info_0x06_Statistics));
@@ -1652,14 +1654,14 @@ void write_ui_Thread(void* arg)
 
 		mgmt_netlink_get_info(0, MGMT_CMD_GET_VETH_INFO, NULL, (char*)&self_msg);
 		//printf("send cmd 05 07 09 \r\n");
-		Send_0x05(ui_Fd,&g_radio_param);
+		Send_0x05(ui_Fd,&g_radio_param);// 发送 0x05 设备基础信息(IP/GPS等)
 		//sleep(1);
 
-		  Send_0x06(ui_Fd,(void*)&stat_info);
+		  Send_0x06(ui_Fd,(void*)&stat_info);// 发送 0x06 流量统计信息
 		  Send_0x07(ui_Fd,&self_msg.amp_infomation);    //0x07 自检
 		// //sleep(1);
 
-		 Send_0x09(ui_Fd,&self_msg);
+		 Send_0x09(ui_Fd,&self_msg);// 发送 0x09 邻居拓扑信息
 		// //sleep(1);
 
 		sleep(1);

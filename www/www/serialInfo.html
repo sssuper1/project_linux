@@ -1,0 +1,164 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>串口配置</title>
+    <meta http-equiv="Expires" content="0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-control" content="no-cache">
+    <meta http-equiv="Cache" content="no-cache">
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all"/>
+    <link href="css/my_style.css" rel="stylesheet" type="text/css" media="all"/>
+    <link href="css/dialog.css" rel="stylesheet" type="text/css" media="all"/>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+   <script>
+
+	var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function(){
+	if(xhr.readyState == 4&&xhr.status == 200){ //根据返回状态值是否正确若成功执行下面语句
+	var xmlDoc = xhr.responseXML;//取得返回请求
+	var root = xmlDoc.getElementsByTagName("root")[0];//识别根标志root
+	var data = root.getElementsByTagName("data");//识别子标志data
+
+//根据id改变相应div的值
+
+	document.getElementById("r_baudrate0").value = data[0].childNodes[0].nodeValue;
+	document.getElementById("r_dID0").value = data[1].childNodes[0].nodeValue;
+	document.getElementById("r_dport0").value = data[2].childNodes[0].nodeValue;
+	document.getElementById("r_lport0").value = data[3].childNodes[0].nodeValue;
+	document.getElementById("r_baudrate1").value = data[4].childNodes[0].nodeValue;
+	document.getElementById("r_dID1").value = data[5].childNodes[0].nodeValue;
+	document.getElementById("r_dport1").value = data[6].childNodes[0].nodeValue;
+	document.getElementById("r_lport1").value = data[7].childNodes[0].nodeValue;
+		}
+	}
+
+    xhr.open('GET', "cgi-bin/cserialInfo", true);//打开后端文件的路径
+    xhr.send();//向后端发送请求
+
+
+    </script>
+
+
+</head>
+<body>
+<form class="form-horizontal" action="/cgi-bin/cserialInfo" method="post">
+    <div class="panel panel-info  col-xs-offset-1 col-sm-10">
+        <div class="panel-heading  row">
+            <h3  class="panel-title col-sm-4">串口配置（机载设备）</h3>
+            <div id="message" class="panel-title col-sm-3" style="padding: 0px;color:red;display: none" ></div>
+
+        </div>
+		
+        <div class="panel-body">
+		
+			<div class="panel panel-success  col-sm-5">
+					<div class="panel-heading">
+						<h3  class="panel-title">串口1配置</h3>
+					</div>
+					
+					<div class="panel-body">
+		  
+						  <div class="form-group">
+							  <label class="col-sm-3 control-label" >波特率:</label>
+							  <div class="col-sm-7">
+								  <select class="form-control" id="r_baudrate0" name="r_baudrate0">
+								      <option value="2400">2400</option>
+									  <option value="4800">4800</option>
+									  <option value="7200">7200</option>
+									  <option value="9600">9600</option>
+									  <option value="14400">14400</option>
+									  <option value="19200">19200</option>
+									  <option value="28800">28800</option>
+									  <option value="38400">38400</option>
+									  <option value="56000">56000</option>
+									  <option value="57600">57600</option>
+									  <option value="115200">115200</option>
+									  <option value="128000">128000</option>
+									  <option value="230400">230400</option>
+									  <option value="460800">460800</option>
+									  <option value="921600">921600</option>
+								  </select>
+							  </div>
+						  </div>
+						  <div class="form-group">
+							  <label class="col-sm-3 control-label" >目的ID:</label>
+							  <div class="col-sm-7">
+								  <input  class="form-control"  type="text" id="r_dID0" name="r_dID0"/>
+							  </div>
+						  </div>
+						  <div class="form-group">
+							  <label class="col-sm-3 control-label" >目的端口:</label>
+							  <div class="col-sm-7">
+								  <input  class="form-control"  type="text" id="r_dport0" name="r_dport0"/>
+							  </div>
+						  </div>
+						  <div class="form-group">
+							  <label class="col-sm-3 control-label" >本地端口:</label>
+							  <div class="col-sm-7">
+								  <input  class="form-control"  type="text" id="r_lport0" name="r_lport0"/>
+							  </div>
+						  </div>
+			
+			  		</div>
+			</div>
+			
+			<div class="panel panel-success  col-xs-offset-1 col-sm-5">
+					<div class="panel-heading">
+						<h3  class="panel-title">串口2配置</h3>
+					</div>
+					
+					<div class="panel-body">
+		  
+		  				  <div class="form-group">
+							  <label class="col-sm-3 control-label" >波特率:</label>
+							  <div class="col-sm-7">
+								  <select class="form-control" id="r_baudrate1" name="r_baudrate1">
+								      <option value="2400">2400</option>
+									  <option value="4800">4800</option>
+									  <option value="9600">9600</option>
+									  <option value="19200">19200</option>
+									  <option value="38400">38400</option>
+									  <option value="57600">57600</option>
+									  <option value="115200">115200</option>
+									  <option value="230400">230400</option>
+									  <option value="460800">460800</option>
+									  <option value="921600">921600</option>
+								  </select>
+							  </div>
+						  </div>
+						  <div class="form-group">
+							  <label class="col-sm-3 control-label" >目的ID:</label>
+							  <div class="col-sm-7">
+								  <input  class="form-control"  type="text" id="r_dID1" name="r_dID1"/>
+							  </div>
+						  </div>
+						  <div class="form-group">
+							  <label class="col-sm-3 control-label" >目的端口:</label>
+							  <div class="col-sm-7">
+								  <input  class="form-control"  type="text" id="r_dport1" name="r_dport1"/>
+							  </div>
+						  </div>
+						  <div class="form-group">
+							  <label class="col-sm-3 control-label" >本地端口:</label>
+							  <div class="col-sm-7">
+								  <input  class="form-control"  type="text" id="r_lport1" name="r_lport1"/>
+							  </div>
+						  </div>
+			
+			  		</div>
+			</div>
+			 <div class="form-group">
+				<input  class="col-sm-offset-2 col-sm-4 btn btn-info" style="min-height: 25px;min-width: 50px;"   type="submit" value="修改" id="btn1"/>
+
+			 </div>			
+
+			
+         </div>
+		  
+    </div>
+
+
+</form>
+</body>
+</html>

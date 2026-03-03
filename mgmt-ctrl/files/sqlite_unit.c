@@ -282,7 +282,9 @@ int busyHandle(void* ptr,int retry_times)
 	return 1;
 }
 
-
+/*
+* 初始化 SQLite 数据库连接，并设置 busy handler
+*/
 int sqliteinit(void)
 {
 	sqlite3_mutex1 = CreateLock();

@@ -2147,23 +2147,43 @@ void reset_systeminfo_table(int j)
 	stsysteminfodata.state[0] = '0';
 	updateData_systeminfo(stsysteminfodata);
 }
+/**
+ * @brief mgmt_get_msg - 管理消息获取线程函数
+ * @details 该函数是一个周期性循环线程，用于：
+ *          1. 从内核获取节点的路由表和虚拟网卡信息
+ *          2. 构造包含网络拓扑信息的报文（含以太网头、IP头、UDP头、管理头等）
+ *          3. 统计邻居节点信息（邻居ID、MCS编码方式等）
+ *          4. 更新SQLite数据库中的系统信息表、链路信息表
+ *          5. 根据节点角色（网关/邻居）发送拓扑请求或拓扑数据
+ *          6. 验证版本一致性（veth、agent、ctrl模块版本）
+ * @param   void
+ * @return  void (无返回值，周期循环运行)
+ * @note    - 该函数在main中被create_Thread启动为独立线程
+ *          - 涉及数据库操作需要加锁保护（sqlite3_mutex1）
+ *          - 与内核通过netlink接口通信获取实时网络状态
+ */
 void mgmt_get_msg(void) {
-	struct mgmt_send self_msg;
-	struct routetable route_msg;
-	//add by yang
-	Smgmt_header topo_header;
-	Smgmt_header* topo_header_ptr;
-	struct topo_data topomsg;
-	struct topo_data* topomsgptr;
-	char topobuff[2048];
-	int neighid_info[32];    //存放邻居id信息
-	uint8_t mcs_all[NET_SIZE];      //存放邻居mcs信息
-	//uint8_t rssi_all[NET_SIZE];     //存放邻居rssi信息
-	char buf[2048];
-	int len = sizeof(buf);
-	int ret = 0, i = 0,j = 0,k=0;
-	int id_index=0;
-	uint32_t seqno = 0;
+	// ===== 管理消息结构体 =====
+	struct mgmt_send self_msg;        // 自身节点消息结构体
+	struct routetable route_msg;      // 路由表信息
+	
+	// ===== 拓扑相关结构体（网关和邻居间的拓扑交互）=====
+	Smgmt_header topo_header;         // 拓扑消息头
+	Smgmt_header* topo_header_ptr;    // 拓扑消息头指针
+	struct topo_data topomsg;         // 拓扑数据
+	struct topo_data* topomsgptr;     // 拓扑数据指针
+	char topobuff[2048];              // 拓扑数据缓冲区
+	
+	// ===== 邻居信息统计数组 =====
+	int neighid_info[32];             // 存放邻居ID信息
+	uint8_t mcs_all[NET_SIZE];        // 存放邻居MCS编码方式信息
+	
+	// ===== 报文缓冲区和报文长度 =====
+	char buf[2048];                   // 完整报文缓冲区（包含所有协议层）
+	int len = sizeof(buf);            // 报文长度
+	int ret = 0, i = 0, j = 0, k=0;   // 循环计数器
+	int id_index=0;                   // 节点索引
+	uint32_t seqno = 0;               // 报文序号（递增）
 	uint8_t dstmac[ETH_ADDR_SIZE] = { 0xff,0xff,0xff,0xff,0xff,0xff };
 	uint8_t srcmac[ETH_ADDR_SIZE] = { 0x00,0x0a,0x35,0x00,0x1e,0x54 };
 	char dstip[4] = { 0xc0,0xa8,0xff,0xff };
@@ -2182,144 +2202,133 @@ void mgmt_get_msg(void) {
 	uint8_t  ts_time_slot_color[NET_SIZE*2];
 	
 
-	static uint8_t mcs_stat;
-	char bcrecv_buf[BUFLEN];  
-	int bc_len=0;
-	int socklen;
-	struct sockaddr_in from;
-	bcMeshInfo *meshinfo_recv;
+	static uint8_t mcs_stat;          // MCS统计状态
+	char bcrecv_buf[BUFLEN];          // 广播接收缓冲区
+	int bc_len=0;                     // 广播数据长度
+	int socklen;                      // socket长度
+	struct sockaddr_in from;          // 发送者地址
+	bcMeshInfo *meshinfo_recv;        // 接收的mesh信息指针
 	printf("调用 mgmt_get_msg函数\r\n");
-	uint8_t cmd[200];
-	INT8 buffer[sizeof(Smgmt_header) + sizeof(Smgmt_set_param)];
-	INT32 buflen = sizeof(Smgmt_header) + sizeof(Smgmt_set_param);
-	Smgmt_header* mhead = (Smgmt_header*)buffer;
-	Smgmt_set_param* mparam = (Smgmt_set_param*)mhead->mgmt_data;
-//	uint8_t version_tmp[4];
-	uint8_t version_compare[20];
 	
-	bzero(buffer, buflen);
-	memset(cmd,0,sizeof(cmd));
-	mhead->mgmt_head = htons(HEAD);
-	mhead->mgmt_len = sizeof(Smgmt_set_param);
-	mhead->mgmt_type = 0;
-	////////////////////////
-	stInData stsysteminfodata;
-	stSurveyInfo stsurveyinfodata;
-	stLink   stlinkdata;
-	stNode   stnode; 
-	memset((char*)&stsysteminfodata,0,sizeof(stsysteminfodata));
-	memset((char*)&stsurveyinfodata,0,sizeof(stsurveyinfodata));
-	memset((char*)&stlinkdata,0,sizeof(stLink));
-	memset((char*)&stnode,0,sizeof(stNode));
-	////////////////////////
-	memset(neighid_info,0,sizeof(neighid_info));
+	// ===== 设置参数相关 =====
+	uint8_t cmd[200];                 // 系统命令缓冲区
+	INT8 buffer[sizeof(Smgmt_header) + sizeof(Smgmt_set_param)];  // 参数设置报文缓冲区
+	INT32 buflen = sizeof(Smgmt_header) + sizeof(Smgmt_set_param);  // 缓冲区长度
+	Smgmt_header* mhead = (Smgmt_header*)buffer;    // 管理头指针
+	Smgmt_set_param* mparam = (Smgmt_set_param*)mhead->mgmt_data;  // 参数设置指针
+	uint8_t version_compare[20];      // 版本比较字符串
+	
+	// ===== 初始化报文缓冲区 =====
+	bzero(buffer, buflen);            // 清空参数设置报文缓冲区
+	memset(cmd,0,sizeof(cmd));        // 清空命令缓冲区
+	mhead->mgmt_head = htons(HEAD);   // 设置管理报文头标识
+	mhead->mgmt_len = sizeof(Smgmt_set_param);    // 设置报文长度
+	mhead->mgmt_type = 0;             // 初始化报文类型
+	
+	// ===== 数据库更新数据结构初始化 =====
+	stInData stsysteminfodata;        // 系统信息数据结构
+	stSurveyInfo stsurveyinfodata;    // 调查信息数据结构
+	stLink   stlinkdata;              // 链路信息数据结构
+	stNode   stnode;                  // 节点信息数据结构
+	memset((char*)&stsysteminfodata,0,sizeof(stsysteminfodata));  // 清空系统信息
+	memset((char*)&stsurveyinfodata,0,sizeof(stsurveyinfodata));  // 清空调查信息
+	memset((char*)&stlinkdata,0,sizeof(stLink));  // 清空链路信息
+	memset((char*)&stnode,0,sizeof(stNode));      // 清空节点信息
+	
+	// ===== 初始化邻居信息数组 =====
+	memset(neighid_info,0,sizeof(neighid_info));  // 清空邻居ID信息
 
 
 
-	hmsg = (Smgmt_header*)(buf + sizeof(ethernet_header_t) + sizeof(ip_header) + sizeof(udp_header));
-	snodefind = (Snodefind*)hmsg->mgmt_data;
-	hmsg->mgmt_head = htons(HEAD);
-	hmsg->mgmt_type = htons(MGMT_NODEFIND);
-	hmsg->mgmt_keep = 0;
+	// ===== 构造管理报文 =====
+	hmsg = (Smgmt_header*)(buf + sizeof(ethernet_header_t) + sizeof(ip_header) + sizeof(udp_header));  // 指向管理头位置
+	snodefind = (Snodefind*)hmsg->mgmt_data;   // 指向节点发现数据位置
+	hmsg->mgmt_head = htons(HEAD);    // 设置管理报文标识
+	hmsg->mgmt_type = htons(MGMT_NODEFIND);  // 设置报文类型为节点发现
+	hmsg->mgmt_keep = 0;              // 初始化保留字段
 
-	srcip[3] = SELFID;
+	srcip[3] = SELFID;                // 设置源IP最后一字节为本节点ID
 
 
-	memcpy(&SELFIP, SELFIP_s, sizeof(uint32_t));
-	//测试打印
+	memcpy(&SELFIP, SELFIP_s, sizeof(uint32_t));  // 复制本节点IP地址
+	
+	// ===== 测试打印本节点IP =====
 	struct in_addr selfaddr;
 	selfaddr.s_addr = SELFIP;
 	//printf("SELFIP为：%s\n", inet_ntoa(selfaddr));
 
 
-	memcpy(ehdr->dest_mac_addr, dstmac, ETH_ADDR_SIZE);
-	memcpy(ehdr->src_mac_addr, srcmac, ETH_ADDR_SIZE);
-	ehdr->ethertype = 0x0008;
+	// ===== 构造以太网帧头 =====
+	memcpy(ehdr->dest_mac_addr, dstmac, ETH_ADDR_SIZE);  // 设置目的MAC地址（广播）
+	memcpy(ehdr->src_mac_addr, srcmac, ETH_ADDR_SIZE);   // 设置源MAC地址
+	ehdr->ethertype = 0x0008;                            // 设置以太网类型（IP协议）
 
+	// ===== 构造IP头 =====
 	iphdr = (ip_header*)((void*)ehdr + ETH_HLEN);
-	iphdr->ver_ihl = (4 << 4 | sizeof(ip_header) / sizeof(unsigned long));
-	iphdr->tos = 0;
-	iphdr->tlen = htons(sizeof(ip_header));
-	iphdr->identification = 1;
-	iphdr->flags_fo = 0;
-	iphdr->ttl = 50;
-	iphdr->proto = IPPROTO_UDP;
-	iphdr->crc = 0;
-	memcpy((char*)&iphdr->saddr, srcip, 4);
-	memcpy((char*)&iphdr->daddr, dstip, 4);
+	iphdr->ver_ihl = (4 << 4 | sizeof(ip_header) / sizeof(unsigned long));  // 版本4，IHL=5
+	iphdr->tos = 0;               // 不区分服务
+	iphdr->tlen = htons(sizeof(ip_header));  // 初始化总长度
+	iphdr->identification = 1;    // 标识字段
+	iphdr->flags_fo = 0;          // 标志和片偏移为0
+	iphdr->ttl = 50;              // 生存时间
+	iphdr->proto = IPPROTO_UDP;   // 协议类型为UDP
+	iphdr->crc = 0;               // 初始化校验和
+	memcpy((char*)&iphdr->saddr, srcip, 4);    // 设置源IP地址
+	memcpy((char*)&iphdr->daddr, dstip, 4);    // 设置目的IP地址（广播）
 
 
+	// ===== 构造UDP头 =====
 	udphdr = (udp_header*)((void*)iphdr + sizeof(ip_header));
-	udphdr->sport = htons(16000);
+	udphdr->sport = htons(16000);              // 设置UDP源端口
 	//udphdr->dport = htons(15008);
-	udphdr->dport = htons(7700);
-	udphdr->len = 0;
-	udphdr->crc = 0x0000;
+	udphdr->dport = htons(7700);               // 设置UDP目的端口（7700）
+	udphdr->len = 0;                           // UDP长度初始化
+	udphdr->crc = 0x0000;                      // UDP校验和初始化
 
-//	pcap_t* adapterHandle = GetPcapDevice("eth0", NULL);
-//	if (adapterHandle == NULL)
-//	{
-//		printf("mgmt_get_msg error\n");
-//		error(0);
-//	}
-//
-	//select_meshinfo_toprint();
-
-/* refresh */
+	// ===== 初始化所有邻居链路信息 =====
+	/* 预初始化所有32个节点的链路表，将其清零 */
 	for(j=1;j<33;j++)
 	{
-		/*  clear systemInfo table */
-		//printf("no neighbour!\r\n");
-
+		// 清空该节点在系统表中的信息
 		reset_systeminfo_table(j);
-		// memset((char*)&stsysteminfodata,0,sizeof(stsysteminfodata));
-		// sprintf(stsysteminfodata.name,"%s",signalevel[j-1]);
-		// sprintf(stsysteminfodata.value,"%d",0);
-		// stsysteminfodata.state[0] = '0';
-		// updateData_systeminfo(stsysteminfodata);
-
-		// memset((char*)&stsysteminfodata,0,sizeof(stsysteminfodata));
-		// sprintf(stsysteminfodata.name,"%s",noise[j-1]);
-		// sprintf(stsysteminfodata.value,"%d",0);
-		// stsysteminfodata.state[0] = '0';
-		// updateData_systeminfo(stsysteminfodata);
 		
-		/*  clear link table */
+		// 清空该节点在链路表中的信息（SNR、接收电平、吞吐率）
 		memset((char*)&stlinkdata,0,sizeof(stLink));
-		stlinkdata.m_stNbInfo[j-1].nbid1=j;
-		stlinkdata.m_stNbInfo[j-1].snr1=0;
-		stlinkdata.m_stNbInfo[j-1].getlv1=0;
-		stlinkdata.m_stNbInfo[j-1].flowrate1=0;
-		updateData_linkinfo(&stlinkdata,j-1,SELFID);
-
+		stlinkdata.m_stNbInfo[j-1].nbid1=j;            // 邻居节点ID
+		stlinkdata.m_stNbInfo[j-1].snr1=0;             // 信噪比为0
+		stlinkdata.m_stNbInfo[j-1].getlv1=0;           // 接收电平为0
+		stlinkdata.m_stNbInfo[j-1].flowrate1=0;        // 吞吐率为0
+		updateData_linkinfo(&stlinkdata,j-1,SELFID);   // 更新数据库
 	}
+	
+	// ===== 主循环：周期性收集网络拓扑信息 =====
 	while (TRUE) {
+		// ===== 清空消息结构体 =====
+		bzero(&self_msg, sizeof(struct mgmt_send));  // 清空自身消息结构
+		node_num = 1;           // 初始化节点计数为1（本节点）
+		offset = sizeof(ethernet_header_t) + sizeof(ip_header) + sizeof(udp_header) + sizeof(Smgmt_header) + sizeof(Snodefind);
+		// ===== 从内核获取网络信息 =====
+		mgmt_netlink_get_info(0, MGMT_CMD_GET_ROUTE_INFO, NULL, (char*)&route_msg);   // 获取路由表信息
+		mgmt_netlink_get_info(0, MGMT_CMD_GET_VETH_INFO, NULL, (char*)&self_msg);    // 获取虚拟网卡信息
+		
+		// ===== 设置报文序列号和节点ID =====
+		self_msg.seqno = seqno;        // 设置自身消息序列号
+		self_msg.node_id = SELFID;     // 设置自身节点ID
+		if (seqno == 0xffffffff)       // 序列号溢出处理
+			seqno = 0;
+		else
+			seqno++;
 
-
-			// send_member_request(0x01);
-
-
-			//		mgmt_mysql_write(1,buf,0);
-			bzero(&self_msg, sizeof(struct mgmt_send));
-			node_num = 1;
-			offset = sizeof(ethernet_header_t) + sizeof(ip_header) + sizeof(udp_header) + sizeof(Smgmt_header) + sizeof(Snodefind);
-
-			mgmt_netlink_get_info(0, MGMT_CMD_GET_ROUTE_INFO, NULL, (char*)&route_msg);
-			mgmt_netlink_get_info(0, MGMT_CMD_GET_VETH_INFO, NULL, (char*)&self_msg);
-			self_msg.seqno = seqno;
-			self_msg.node_id = SELFID;
-			if (seqno == 0xffffffff)
-				seqno = 0;
-			else
-				seqno++;
-
-			snodefind->selfid = htons(SELFID);
-			snodefind->selfip = iphdr->saddr;
-			 printf("node_%d has %d neigh\r\n",SELFID,self_msg.neigh_num);
-			memset(neighid_info,0,sizeof(neighid_info));
-			for (i = 0; i < self_msg.neigh_num; i++)
-			{
-				if (self_msg.msg[i].mcs != 0x0f && self_msg.msg[i].node_id != SELFID)
+		// ===== 构造节点发现报文 =====
+		snodefind->selfid = htons(SELFID);        // 设置本节点ID（网络字节序）
+		snodefind->selfip = iphdr->saddr;         // 设置本节点IP地址
+		printf("node_%d has %d neigh\r\n",SELFID,self_msg.neigh_num);  // 打印邻居节点数
+		
+		// ===== 统计邻居信息 =====
+		memset(neighid_info,0,sizeof(neighid_info));  // 清空邻居ID数组
+		for (i = 0; i < self_msg.neigh_num; i++)      // 遍历所有邻居
+		{
+			if (self_msg.msg[i].mcs != 0x0f && self_msg.msg[i].node_id != SELFID)  // 有效邻居判断
 				{
 					//printf("%d mcs %d\n", i, self_msg.msg[i].mcs);
 					node_num++;
@@ -2336,60 +2345,87 @@ void mgmt_get_msg(void) {
 	//		printf("\n");
 
 			//mgmt_selfcheck_report();
-			//mgmt_status_new_report();
+		// ===== 从内核获取网络信息 =====
+		mgmt_netlink_get_info(0, MGMT_CMD_GET_ROUTE_INFO, NULL, (char*)&route_msg);   // 获取路由表信息
+		mgmt_netlink_get_info(0, MGMT_CMD_GET_VETH_INFO, NULL, (char*)&self_msg);    // 获取虚拟网卡信息
+		
+		// ===== 设置报文序列号和节点ID =====
+		self_msg.seqno = seqno;        // 设置自身消息序列号
+		self_msg.node_id = SELFID;     // 设置自身节点ID
+		if (seqno == 0xffffffff)       // 序列号溢出处理
+			seqno = 0;
+		else
+			seqno++;
 
-
-			snodefind->node_num = htons(node_num);
-			len = offset;
-
-			hmsg->mgmt_len = htons(len - (sizeof(ethernet_header_t) + sizeof(ip_header) + sizeof(udp_header) + sizeof(Smgmt_header)));
-			udphdr->len = htons(len - sizeof(ethernet_header_t) - sizeof(ip_header));
-			iphdr->tlen = htons(len - sizeof(ethernet_header_t));
-			iphdr->crc = ipCksum((void*)iphdr, 20);
-
-			//printf("11mgmt_get_msg %d\n", );
-			//pcap_sendpacket(adapterHandle, buf, len);
-
-			//add by yang
-			//网关节点持续向网管发送自身拓扑包
-			if (is_conned == 1) {
-				//网管查询完节点信息就和节点连接上，网管地址会赋值到全局的wg_addr,节点持续发送
-				//printf("网关 --> 网管IP：%s \\n", inet_ntoa(wg_addr.sin_addr));
-				//printf("网关 --> 网管端口：%u \n", wg_addr.sin_port);
-				send_topo_msg(wg_addr, self_msg);
-				send_topo_request();
-
-			}
-			//邻居节点收到网关节点的拓扑信息请求，则持续向请求节点发送拓扑信息
-			if (gotRequest == 1) {
-				//printf("邻居 --> 网关IP：%s 发送拓扑数据包\n", inet_ntoa(gate_addr.sin_addr));
-				//printf("邻居 --> 网关端口：%d 转发拓扑数据包\n", gate_addr.sin_port);
-				send_topo_msg(gate_addr, self_msg);
-
-			}
-			//网关节点转发邻居节点拓扑包
-
-	//add by sdg
-	/*  更新宽带参数 */
-
-			memset(version_compare,0,sizeof(version_compare));
-			sprintf(version_compare,"V%d.%d.%d",self_msg.veth_version[1],self_msg.veth_version[2],self_msg.veth_version[3]);
-			if(strcmp(version, version_compare) != 0)
+		// ===== 构造节点发现报文 =====
+		snodefind->selfid = htons(SELFID);        // 设置本节点ID（网络字节序）
+		snodefind->selfip = iphdr->saddr;         // 设置本节点IP地址
+		printf("node_%d has %d neigh\r\n",SELFID,self_msg.neigh_num);  // 打印邻居节点数
+		
+		// ===== 统计邻居信息 =====
+		memset(neighid_info,0,sizeof(neighid_info));  // 清空邻居ID数组
+		for (i = 0; i < self_msg.neigh_num; i++)      // 遍历所有邻居
+		{
+			if (self_msg.msg[i].mcs != 0x0f && self_msg.msg[i].node_id != SELFID)  // 有效邻居判断
 			{
-				//printf("The version of vert-eth0 is inconsistent %s\n",version_compare);
+				node_num++;                // 有效邻居计数
+				ipaddr = (int*)(buf + offset);  // 获取缓冲区中的IP地址指针
+				*ipaddr = htonl(0xc0a80200 + self_msg.msg[i].node_id);  // 构造邻居IP地址
+				offset += sizeof(int);     // 偏移量向后移动
+				
+				/* 存下邻居信息用于后续处理 */
+				neighid_info[i]=self_msg.msg[i].node_id;  // 记录邻居ID
+				mcs_all[i]=self_msg.msg[i].mcs;           // 记录邻居MCS编码方式
 			}
+		}
 
-			memset(version_compare,0,sizeof(version_compare));
+		// ===== 计算报文长度并设置各层协议头 =====
+		snodefind->node_num = htons(node_num);   // 设置节点总数（包括本身）
+		len = offset;                             // 计算最终报文长度
 
-			sprintf(version_compare,"V%d.%d.%d",self_msg.agent_version[1],self_msg.agent_version[2],self_msg.agent_version[3]);
-			if(strcmp(version, version_compare) != 0)
-			{
-				//printf("The version of mgmt-agent is inconsistent %s\n",version_compare);
-			}
+		// 计算各层报文长度（从后向前）
+		hmsg->mgmt_len = htons(len - (sizeof(ethernet_header_t) + sizeof(ip_header) + sizeof(udp_header) + sizeof(Smgmt_header)));
+		udphdr->len = htons(len - sizeof(ethernet_header_t) - sizeof(ip_header));
+		iphdr->tlen = htons(len - sizeof(ethernet_header_t));
+		iphdr->crc = ipCksum((void*)iphdr, 20);   // 计算IP头校验和
 
-			memset(version_compare,0,sizeof(version_compare));
+		// ===== 根据节点角色发送拓扑信息 =====
+		// 网关节点持续向网管发送自身拓扑包
+		if (is_conned == 1) {
+			// 网管查询完节点信息就和节点连接上，网管地址会赋值到全局的wg_addr，节点持续发送
+			send_topo_msg(wg_addr, self_msg);     // 发送拓扑消息给网管
+			send_topo_request();                   // 发送拓扑请求
 
-			sprintf(version_compare,"V%d.%d.%d",self_msg.ctrl_version[1],self_msg.ctrl_version[2],self_msg.ctrl_version[3]);
+		}
+		
+		// 邻居节点收到网关节点的拓扑信息请求，则持续向请求节点发送拓扑信息
+		if (gotRequest == 1) {
+			send_topo_msg(gate_addr, self_msg);   // 发送拓扑消息给网关
+
+		}
+
+		// ===== 版本一致性检查 =====
+		/* 检查veth（虚拟网卡）、agent（代理）、ctrl（控制）模块版本是否一致 */
+		
+		// 检查虚拟网卡版本
+		memset(version_compare,0,sizeof(version_compare));
+		sprintf(version_compare,"V%d.%d.%d",self_msg.veth_version[1],self_msg.veth_version[2],self_msg.veth_version[3]);
+		if(strcmp(version, version_compare) != 0)
+		{
+			// 版本不一致，可在此处处理
+		}
+
+		// 检查代理模块版本
+		memset(version_compare,0,sizeof(version_compare));
+		sprintf(version_compare,"V%d.%d.%d",self_msg.agent_version[1],self_msg.agent_version[2],self_msg.agent_version[3]);
+		if(strcmp(version, version_compare) != 0)
+		{
+			// agent版本不一致
+		}
+
+		// 检查控制模块版本
+		memset(version_compare,0,sizeof(version_compare));
+		sprintf(version_compare,"V%d.%d.%d",self_msg.ctrl_version[1],self_msg.ctrl_version[2],self_msg.ctrl_version[3]);
 			if(strcmp(version, version_compare) != 0)
 			{
 				//printf("The version of mac-ctrl is inconsistent %s\n",version_compare);
@@ -2398,7 +2434,7 @@ void mgmt_get_msg(void) {
 
 
 
-		
+		//更新数据库
 		memset((char*)&stsysteminfodata,0,sizeof(stsysteminfodata));
 		sprintf(stsysteminfodata.name,"%s","ipaddr");
 		sprintf(stsysteminfodata.value,"%d.%d.%d.%d",SELFIP_s[0],SELFIP_s[1],SELFIP_s[2],SELFIP_s[3]);
@@ -2531,7 +2567,7 @@ void mgmt_get_msg(void) {
 						sprintf(stsysteminfodata.name,"%s",linkquality[j-1]);  //name : linkqualityX
 						sprintf(stsysteminfodata.value,"%d",self_msg.msg[id_index].mcs);
 						stsysteminfodata.state[0] = '1';
-						updateData_systeminfo(stsysteminfodata);	
+						updateData_systeminfo(stsysteminfodata);//更新本地 SQLite 数据库中 systemInfo 表数据	
 
 						memset((char*)&stsysteminfodata,0,sizeof(stsysteminfodata));
 						sprintf(stsysteminfodata.name,"%s",good[j-1]);  //name : goodX
@@ -2597,7 +2633,7 @@ void mgmt_get_msg(void) {
 				{
 					/* mcs档位需要切换 */
 					printf("mcs update ");
-					bzero(buffer, buflen);
+					bzero(buffer, buflen);//清空参数设置报文缓冲区
 					memset(cmd,0,sizeof(cmd));
 					mhead->mgmt_head = htons(HEAD);
 					mhead->mgmt_len = sizeof(Smgmt_set_param);
@@ -2631,7 +2667,7 @@ void mgmt_get_msg(void) {
 
 		ts_time_slot_color[SELFID] = 0;
 
-		update_time_slot_table(&(self_msg.mac_information_part1),ts_time_slot_color);
+		update_time_slot_table(&(self_msg.mac_information_part1),ts_time_slot_color);//更新数据库中的时隙表
 		
 		for(j=0;j<NET_SIZE*2;j++)
 		{

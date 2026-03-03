@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Table Row Addition</title>
+    <script>
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', "cgi-bin/cfreqInfo", true);//打开后端文件的路径
+	xhr.send();
+	function del(btn){
+		var row = btn.parentNode.parentNode;
+		var xhr = new XMLHttpRequest();
+		xhr.open('POST', "cgi-bin/cfreqInfo", true);//打开后端文件的路径
+		xhr.setRequestHeader('Content-Type','text/plain');
+		xhr.send('d='+row.cells[0].innerHTML);//向后端发送请求
+		row.parentNode.removeChild(row);
+	}
+        function add() {
+            var table = document.getElementById("t1");
+            var newRow = table.insertRow();
+            	var cell1 = newRow.insertCell(0);
+            	cell1.innerHTML = document.getElementById("freq").value;
+		var cell2 = newRow.insertCell(1);
+		cell2.innerHTML = '<button onclick=del(this)>删除</button>';
+		var xhr = new XMLHttpRequest();
+		xhr.open('POST', "cgi-bin/cfreqInfo", true);//打开后端文件的路径
+		xhr.setRequestHeader('Content-Type','text/plain');
+		xhr.send('a='+cell1.innerHTML);//向后端发送请求
+        }
+    </script>
+</head>
+<body>
+<label  >跳频频点:</label>
+<input  class="form-control"  type="text" id="freq" name="add_freq"/>
+<button onclick="add()">添加</button>
+    <table id="t1" border="10">
+        <tr>
+            <td>跳频频点集</td>
+        </tr>
+    </table>
+
+</body>
+</html>

@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+<meta http-equiv="Expires" content="0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-control" content="no-cache">
+<meta http-equiv="Cache" content="no-cache">
+	<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all"/>
+	<link href="css/my_style.css" rel="stylesheet" type="text/css" media="all"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script >	
+	var id =[];
+	var time = [];
+	var ip=[];
+	var txpower= [];
+	var bw=[];
+	var freq=[];
+	var mcs=[];
+	var mode=[];
+	var interval=[];
+	var maxnb=[];
+	var nbor=[];
+	var lotd=[];
+	var latd=[];
+	var softver=[];
+	var hardver=[];
+
+	var snr=[];
+	var getlevel=[];
+	var flowrate=[];
+	var r=0,t=0;
+for(r=0;r<32;r++){
+snr[r]=new Array();
+getlevel[r]=new Array();
+flowrate[r]=new Array();
+for(t=0;t<32;t++){
+snr[r][t]=new Array();
+getlevel[r][t]=new Array();
+flowrate[r][t]=new Array();
+}
+}
+
+    var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function(){
+	if(xhr.readyState == 4&&xhr.status == 200){ //根据返回状态值是否正确若成功执行下面语句
+	var xmlDoc = xhr.responseXML;//取得返回请求
+	var root = xmlDoc.getElementsByTagName("root")[0];//识别根标志root
+	var data = root.getElementsByTagName("data");//识别子标志data
+
+	var i=0,j=0;
+
+
+for(i=0;i<480;i+=15){
+	id[j]=data[i].childNodes[0].nodeValue;
+	time[j]=data[i+1].childNodes[0].nodeValue;
+	 ip[j]=data[i+2].childNodes[0].nodeValue;
+	 txpower[j]=data[i+3].childNodes[0].nodeValue;
+	 bw[j]=data[i+4].childNodes[0].nodeValue;
+	 freq[j]=data[i+5].childNodes[0].nodeValue;
+	 mcs[j]=data[i+6].childNodes[0].nodeValue;
+	 mode[j]=data[i+7].childNodes[0].nodeValue;
+	 interval[j]=data[i+8].childNodes[0].nodeValue;
+	 maxnb[j]=data[i+9].childNodes[0].nodeValue;
+	 nbor[j]=data[i+10].childNodes[0].nodeValue;
+	 lotd[j]=data[i+11].childNodes[0].nodeValue;
+	 latd[j]=data[i+12].childNodes[0].nodeValue;
+	 softver[j]=data[i+13].childNodes[0].nodeValue;
+	 hardver[j]=data[i+14].childNodes[0].nodeValue
+
+	j++;
+};
+
+	var k=0,m=0,n=0;
+for(m=0;m<32;m++){
+	for(n=0;n<32;n++){
+	snr[m][n]=data[480+k].childNodes[0].nodeValue;
+	getlevel[m][n]=data[480+k+1].childNodes[0].nodeValue;
+	flowrate[m][n]=data[480+k+2].childNodes[0].nodeValue;
+	k+=3;
+	}
+}
+
+//根据id改变相应div的值
+
+//	document.getElementById("m_txpower").value = data[0].childNodes[0].nodeValue;
+
+		}
+	}
+
+/*	var intervalId;
+
+intervalId = setInterval(function () {
+    xhr.open('GET', "cgi-bin/ctopologyInfo", true);//打开后端文件的路径
+    xhr.send();//向后端发送请求
+}, 3000);*/
+
+    xhr.open('GET', "cgi-bin/ctopologyInfo", true);//打开后端文件的路径
+    xhr.send();//向后端发送请求
+
+</script> 
+</head>
+<body style="height: 100%; margin: 0">
+  <div id="container" style="height: 100%"></div>
+
+  
+  <script type="text/javascript" src="./echarts.js"></script>
+  
+
+
+  <script type="text/javascript">
+
+
+
+
+
+    var dom = document.getElementById('container');
+    var myChart = echarts.init(dom, null, {
+      renderer: 'canvas',
+      useDirtyRect: false
+    });
+    var app = {};
+    
+    var option;
+
+    option = {
+  title: {
+    text: 'Basic Graph'
+  },
+  tooltip: {},
+  animationDurationUpdate: 1500,
+  animationEasingUpdate: 'quinticInOut',
+  series: [
+    {
+      type: 'graph',
+      layout: 'none',
+      symbolSize: 40,
+      roam: true,
+      label: {
+        show: true,
+	fontSize:0
+      },
+      edgeSymbol: ['circle', 'arrow'],
+      edgeSymbolSize: [4, 10],
+      edgeLabel: {
+        fontSize: 0
+      },
+      data: [
+	{
+          id:'Node1-display',
+          name: 'Node1-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*0)/16),
+          y: 300-1000*Math.sin((Math.PI*0)/16),
+          label:{
+            show:1,
+//show:isdiaplaydata[0],
+	fontSize:13,
+                formatter: [
+        '节点1',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node2-display',
+          name: 'Node2-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*1)/16),
+          y: 300-1000*Math.sin((Math.PI*1)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点2',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node3-display',
+          name: 'Node3-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*2)/16),
+          y: 300-1000*Math.sin((Math.PI*2)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点3',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node4-display',
+          name: 'Node4-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*3)/16),
+          y: 300-1000*Math.sin((Math.PI*3)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点4',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node5-display',
+          name: 'Node5-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*4)/16),
+          y: 300-1000*Math.sin((Math.PI*4)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点5',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node6-display',
+          name: 'Node6-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*5)/16),
+          y: 300-1000*Math.sin((Math.PI*5)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点6',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node7-display',
+          name: 'Node7-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*6)/16),
+          y: 300-1000*Math.sin((Math.PI*6)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点7',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node8-display',
+          name: 'Node8-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*7)/16),
+          y: 300-1000*Math.sin((Math.PI*7)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点8',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node9-display',
+          name: 'Node9-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*8)/16),
+          y: 300-1000*Math.sin((Math.PI*8)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点9',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node10-display',
+          name: 'Node10-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*9)/16),
+          y: 300-1000*Math.sin((Math.PI*9)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点10',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node11-display',
+          name: 'Node11-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*10)/16),
+          y: 300-1000*Math.sin((Math.PI*10)/16),
+          label:{
+            show:1,
+//show:isdiaplaydata[0],
+	fontSize:15,
+                formatter: [
+        '节点11',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node12-display',
+          name: 'Node12-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*11)/16),
+          y: 300-1000*Math.sin((Math.PI*11)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点12',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node13-display',
+          name: 'Node13-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*12)/16),
+          y: 300-1000*Math.sin((Math.PI*12)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点13',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node14-display',
+          name: 'Node14-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*13)/16),
+          y: 300-1000*Math.sin((Math.PI*13)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点14',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node15-display',
+          name: 'Node15-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*14)/16),
+          y: 300-1000*Math.sin((Math.PI*14)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点15',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node16-display',
+          name: 'Node16-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*15)/16),
+          y: 300-1000*Math.sin((Math.PI*15)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点16',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node17-display',
+          name: 'Node17-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*16)/16),
+          y: 300-1000*Math.sin((Math.PI*16)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点17',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node18-display',
+          name: 'Node18-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*17)/16),
+          y: 300-1000*Math.sin((Math.PI*17)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点18',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node19-display',
+          name: 'Node19-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*18)/16),
+          y: 300-1000*Math.sin((Math.PI*18)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点19',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node20-display',
+          name: 'Node20-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*19)/16),
+          y: 300-1000*Math.sin((Math.PI*19)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点20',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node21-display',
+          name: 'Node21-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*20)/16),
+          y: 300-1000*Math.sin((Math.PI*20)/16),
+          label:{
+            show:1,
+//show:isdiaplaydata[0],
+	fontSize:15,
+                formatter: [
+        '节点21',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node22-display',
+          name: 'Node22-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*21)/16),
+          y: 300-1000*Math.sin((Math.PI*21)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点22',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node23-display',
+          name: 'Node23-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*22)/16),
+          y: 300-1000*Math.sin((Math.PI*22)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点23',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node24-display',
+          name: 'Node24-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*23)/16),
+          y: 300-1000*Math.sin((Math.PI*23)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点24',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node25-display',
+          name: 'Node25-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*24)/16),
+          y: 300-1000*Math.sin((Math.PI*24)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点25',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node26-display',
+          name: 'Node26-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*25)/16),
+          y: 300-1000*Math.sin((Math.PI*25)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点26',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node27-display',
+          name: 'Node27-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*26)/16),
+          y: 300-1000*Math.sin((Math.PI*26)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点27',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node28-display',
+          name: 'Node28-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*27)/16),
+          y: 300-1000*Math.sin((Math.PI*27)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点28',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node29-display',
+          name: 'Node29-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*28)/16),
+          y: 300-1000*Math.sin((Math.PI*28)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点29',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node30-display',
+          name: 'Node30-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*29)/16),
+          y: 300-1000*Math.sin((Math.PI*29)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点30',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node31-display',
+          name: 'Node31-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*30)/16),
+          y: 300-1000*Math.sin((Math.PI*30)/16),
+          label:{
+            show:1,
+//show:isdiaplaydata[0],
+	fontSize:15,
+                formatter: [
+        '节点31',
+    ].join('\n'),
+          }
+        },
+	{
+          id:'Node32-display',
+          name: 'Node32-display:',
+		symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*31)/16),
+          y: 300-1000*Math.sin((Math.PI*31)/16),
+          label:{
+            show:true,
+	fontSize:15,
+                formatter: [
+        '节点32',
+    ].join('\n'),
+          }
+        },
+
+
+
+        {
+          id:'Node 1',
+          name: 'dev1',
+//symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*0)/16),
+          y: 300-1000*Math.sin((Math.PI*0)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[0]+'\n发送功率：'+txpower[0]+'\n带宽：'+bw[0]+'\n频点：'+freq[0]+'\nMCS：'+mcs[0]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 2',
+          name: 'dev2',
+          x:  1300-1000*Math.cos((Math.PI*1)/16),
+          y: 300-1000*Math.sin((Math.PI*1)/16),
+          label:{
+            show:true,
+                formatter: [
+	'节点IP：'+id[1]+'\n发送功率：'+txpower[1]+'\n带宽：'+bw[1]+'\n频点：'+freq[1]+'\nMCS：'+mcs[1]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 3',
+          name: 'dev3',
+          x:  1300-1000*Math.cos((Math.PI*2)/16),
+          y: 300-1000*Math.sin((Math.PI*2)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[2]+'\n发送功率：'+txpower[2]+'\n带宽：'+bw[2]+'\n频点：'+freq[2]+'\nMCS：'+mcs[2]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 4',
+          name: 'dev4',
+          x:  1300-1000*Math.cos((Math.PI*3)/16),
+          y: 300-1000*Math.sin((Math.PI*3)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[3]+'\n发送功率：'+txpower[3]+'\n带宽：'+bw[3]+'\n频点：'+freq[3]+'\nMCS：'+mcs[3]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 5',
+          name: 'dev5',
+          x:  1300-1000*Math.cos((Math.PI*4)/16),
+          y: 300-1000*Math.sin((Math.PI*4)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[4]+'\n发送功率：'+txpower[4]+'\n带宽：'+bw[4]+'\n频点：'+freq[4]+'\nMCS：'+mcs[4]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 6',
+          name: 'dev6',
+          x:  1300-1000*Math.cos((Math.PI*5)/16),
+          y: 300-1000*Math.sin((Math.PI*5)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[5]+'\n发送功率：'+txpower[5]+'\n带宽：'+bw[5]+'\n频点：'+freq[5]+'\nMCS：'+mcs[5]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 7',
+          name: 'dev7',
+          x:  1300-1000*Math.cos((Math.PI*6)/16),
+          y: 300-1000*Math.sin((Math.PI*6)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[6]+'\n发送功率：'+txpower[6]+'\n带宽：'+bw[6]+'\n频点：'+freq[6]+'\nMCS：'+mcs[6]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 8',
+          name: 'dev8',
+          x:  1300-1000*Math.cos((Math.PI*7)/16),
+          y: 300-1000*Math.sin((Math.PI*7)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[7]+'\n发送功率：'+txpower[7]+'\n带宽：'+bw[7]+'\n频点：'+freq[7]+'\nMCS：'+mcs[7]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 9',
+          name: 'dev9',
+          x:  1300-1000*Math.cos((Math.PI*8)/16),
+          y: 300-1000*Math.sin((Math.PI*8)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[8]+'\n发送功率：'+txpower[8]+'\n带宽：'+bw[8]+'\n频点：'+freq[8]+'\nMCS：'+mcs[8]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 10',
+          name: 'dev10',
+          x:  1300-1000*Math.cos((Math.PI*9)/16),
+          y: 300-1000*Math.sin((Math.PI*9)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[9]+'\n发送功率：'+txpower[9]+'\n带宽：'+bw[9]+'\n频点：'+freq[9]+'\nMCS：'+mcs[9]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 11',
+          name: 'dev11',
+//symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*10)/16),
+          y: 300-1000*Math.sin((Math.PI*10)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[10]+'\n发送功率：'+txpower[10]+'\n带宽：'+bw[10]+'\n频点：'+freq[10]+'\nMCS：'+mcs[10]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 12',
+          name: 'dev12',
+          x:  1300-1000*Math.cos((Math.PI*11)/16),
+          y: 300-1000*Math.sin((Math.PI*11)/16),
+          label:{
+            show:true,
+                formatter: [
+	'节点IP：'+id[11]+'\n发送功率：'+txpower[11]+'\n带宽：'+bw[11]+'\n频点：'+freq[11]+'\nMCS：'+mcs[11]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 13',
+          name: 'dev13',
+          x:  1300-1000*Math.cos((Math.PI*12)/16),
+          y: 300-1000*Math.sin((Math.PI*12)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[12]+'\n发送功率：'+txpower[12]+'\n带宽：'+bw[12]+'\n频点：'+freq[12]+'\nMCS：'+mcs[12]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 14',
+          name: 'dev14',
+          x:  1300-1000*Math.cos((Math.PI*13)/16),
+          y: 300-1000*Math.sin((Math.PI*13)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[13]+'\n发送功率：'+txpower[13]+'\n带宽：'+bw[13]+'\n频点：'+freq[13]+'\nMCS：'+mcs[13]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 15',
+          name: 'dev15',
+          x:  1300-1000*Math.cos((Math.PI*14)/16),
+          y: 300-1000*Math.sin((Math.PI*14)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[14]+'\n发送功率：'+txpower[14]+'\n带宽：'+bw[14]+'\n频点：'+freq[14]+'\nMCS：'+mcs[14]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 16',
+          name: 'dev16',
+          x:  1300-1000*Math.cos((Math.PI*15)/16),
+          y: 300-1000*Math.sin((Math.PI*15)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[15]+'\n发送功率：'+txpower[15]+'\n带宽：'+bw[15]+'\n频点：'+freq[15]+'\nMCS：'+mcs[15]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 17',
+          name: 'dev17',
+          x:  1300-1000*Math.cos((Math.PI*16)/16),
+          y: 300-1000*Math.sin((Math.PI*16)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[16]+'\n发送功率：'+txpower[16]+'\n带宽：'+bw[16]+'\n频点：'+freq[16]+'\nMCS：'+mcs[16]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 18',
+          name: 'dev18',
+          x:  1300-1000*Math.cos((Math.PI*17)/16),
+          y: 300-1000*Math.sin((Math.PI*17)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[17]+'\n发送功率：'+txpower[17]+'\n带宽：'+bw[17]+'\n频点：'+freq[17]+'\nMCS：'+mcs[17]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 19',
+          name: 'dev19',
+          x:  1300-1000*Math.cos((Math.PI*18)/16),
+          y: 300-1000*Math.sin((Math.PI*18)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[18]+'\n发送功率：'+txpower[18]+'\n带宽：'+bw[18]+'\n频点：'+freq[18]+'\nMCS：'+mcs[18]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 20',
+          name: 'dev20',
+          x:  1300-1000*Math.cos((Math.PI*19)/16),
+          y: 300-1000*Math.sin((Math.PI*19)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[19]+'\n发送功率：'+txpower[19]+'\n带宽：'+bw[19]+'\n频点：'+freq[19]+'\nMCS：'+mcs[19]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 21',
+          name: 'dev21',
+//symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*20)/16),
+          y: 300-1000*Math.sin((Math.PI*20)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[20]+'\n发送功率：'+txpower[20]+'\n带宽：'+bw[20]+'\n频点：'+freq[20]+'\nMCS：'+mcs[20]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 22',
+          name: 'dev22',
+          x:  1300-1000*Math.cos((Math.PI*21)/16),
+          y: 300-1000*Math.sin((Math.PI*21)/16),
+          label:{
+            show:true,
+                formatter: [
+	'节点IP：'+id[21]+'\n发送功率：'+txpower[21]+'\n带宽：'+bw[21]+'\n频点：'+freq[21]+'\nMCS：'+mcs[21]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 23',
+          name: 'dev23',
+          x:  1300-1000*Math.cos((Math.PI*22)/16),
+          y: 300-1000*Math.sin((Math.PI*22)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[22]+'\n发送功率：'+txpower[22]+'\n带宽：'+bw[22]+'\n频点：'+freq[22]+'\nMCS：'+mcs[22]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 24',
+          name: 'dev24',
+          x:  1300-1000*Math.cos((Math.PI*23)/16),
+          y: 300-1000*Math.sin((Math.PI*23)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[23]+'\n发送功率：'+txpower[23]+'\n带宽：'+bw[23]+'\n频点：'+freq[23]+'\nMCS：'+mcs[23]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 25',
+          name: 'dev25',
+          x:  1300-1000*Math.cos((Math.PI*24)/16),
+          y: 300-1000*Math.sin((Math.PI*24)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[24]+'\n发送功率：'+txpower[24]+'\n带宽：'+bw[24]+'\n频点：'+freq[24]+'\nMCS：'+mcs[24]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 26',
+          name: 'dev26',
+          x:  1300-1000*Math.cos((Math.PI*25)/16),
+          y: 300-1000*Math.sin((Math.PI*25)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[25]+'\n发送功率：'+txpower[25]+'\n带宽：'+bw[25]+'\n频点：'+freq[25]+'\nMCS：'+mcs[25]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 27',
+          name: 'dev27',
+          x:  1300-1000*Math.cos((Math.PI*26)/16),
+          y: 300-1000*Math.sin((Math.PI*26)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[26]+'\n发送功率：'+txpower[26]+'\n带宽：'+bw[26]+'\n频点：'+freq[26]+'\nMCS：'+mcs[26]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 28',
+          name: 'dev28',
+          x:  1300-1000*Math.cos((Math.PI*27)/16),
+          y: 300-1000*Math.sin((Math.PI*27)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[27]+'\n发送功率：'+txpower[27]+'\n带宽：'+bw[27]+'\n频点：'+freq[27]+'\nMCS：'+mcs[27]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 29',
+          name: 'dev29',
+          x:  1300-1000*Math.cos((Math.PI*28)/16),
+          y: 300-1000*Math.sin((Math.PI*28)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[28]+'\n发送功率：'+txpower[28]+'\n带宽：'+bw[28]+'\n频点：'+freq[28]+'\nMCS：'+mcs[28]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 30',
+          name: 'dev30',
+          x:  1300-1000*Math.cos((Math.PI*29)/16),
+          y: 300-1000*Math.sin((Math.PI*29)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[29]+'\n发送功率：'+txpower[29]+'\n带宽：'+bw[29]+'\n频点：'+freq[29]+'\nMCS：'+mcs[29]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 31',
+          name: 'dev31',
+//symbolSize: 0,
+          x:  1300-1000*Math.cos((Math.PI*30)/16),
+          y: 300-1000*Math.sin((Math.PI*30)/16),
+          label:{
+            show:true,
+                formatter: [
+        '节点IP：'+id[30]+'\n发送功率：'+txpower[30]+'\n带宽：'+bw[30]+'\n频点：'+freq[30]+'\nMCS：'+mcs[30]
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 32',
+          name: 'dev32',
+          x:  1300-1000*Math.cos((Math.PI*31)/16),
+          y: 300-1000*Math.sin((Math.PI*31)/16),
+          label:{
+            show:true,
+                formatter: [
+	'节点IP：'+id[31]+'\n发送功率：'+txpower[31]+'\n带宽：'+bw[31]+'\n频点：'+freq[31]+'\nMCS：'+mcs[31]
+    ].join('\n'),
+          }
+        },
+
+
+
+
+      ],
+      // links: [],
+     links: [
+        {
+          source: 'Node 1',
+          target: 'Node 2',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[1][0]+' dBm\n'+'信噪比：'+snr[1][0]+' dB\n'+'流量: '+flowrate[0][1]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+      //    opacity: 0,
+	//color:linecolor[0]
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 3',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[2][0]+' dBm\n'+'信噪比：'+snr[2][0]+' dB\n'+'流量: '+flowrate[0][2]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 4',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[3][0]+' dBm\n'+'信噪比：'+snr[3][0]+' dB\n'+'流量: '+flowrate[0][3]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 5',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[4][0]+' dBm\n'+'信噪比：'+snr[4][0]+' dB\n'+'流量: '+flowrate[0][4]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 6',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[5][0]+' dBm\n'+'信噪比：'+snr[5][0]+' dB\n'+'流量: '+flowrate[0][5]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 7',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[6][0]+' dBm\n'+'信噪比：'+snr[6][0]+' dB\n'+'流量: '+flowrate[0][6]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 8',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[7][0]+' dBm\n'+'信噪比：'+snr[7][0]+' dB\n'+'流量: '+flowrate[0][7]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 9',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[8][0]+' dBm\n'+'信噪比：'+snr[8][0]+' dB\n'+'流量: '+flowrate[0][8]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+         {
+         source: 'Node 1',
+          target: 'Node 10',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[9][0]+' dBm\n'+'信噪比：'+snr[9][0]+' dB\n'+'流量: '+flowrate[0][9]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 11',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[10][0]+' dBm\n'+'信噪比：'+snr[10][0]+' dB\n'+'流量: '+flowrate[0][10]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 12',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[11][0]+' dBm\n'+'信噪比：'+snr[11][0]+' dB\n'+'流量: '+flowrate[0][11]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 13',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[12][0]+' dBm\n'+'信噪比：'+snr[12][0]+' dB\n'+'流量: '+flowrate[0][12]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 14',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[13][0]+' dBm\n'+'信噪比：'+snr[13][0]+' dB\n'+'流量: '+flowrate[0][13]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 15',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[14][0]+' dBm\n'+'信噪比：'+snr[14][0]+' dB\n'+'流量: '+flowrate[0][14]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 16',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[15][0]+' dBm\n'+'信噪比：'+snr[15][0]+' dB\n'+'流量: '+flowrate[0][15]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 17',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[16][0]+' dBm\n'+'信噪比：'+snr[16][0]+' dB\n'+'流量: '+flowrate[0][16]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 18',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[17][0]+' dBm\n'+'信噪比：'+snr[17][0]+' dB\n'+'流量: '+flowrate[0][17]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 19',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[18][0]+' dBm\n'+'信噪比：'+snr[18][0]+' dB\n'+'流量: '+flowrate[0][18]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 20',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[19][0]+' dBm\n'+'信噪比：'+snr[19][0]+' dB\n'+'流量: '+flowrate[0][19]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 21',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[20][0]+' dBm\n'+'信噪比：'+snr[20][0]+' dB\n'+'流量: '+flowrate[0][20]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 22',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[21][0]+' dBm\n'+'信噪比：'+snr[21][0]+' dB\n'+'流量: '+flowrate[0][21]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 23',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[22][0]+' dBm\n'+'信噪比：'+snr[22][0]+' dB\n'+'流量: '+flowrate[0][22]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 24',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[23][0]+' dBm\n'+'信噪比：'+snr[23][0]+' dB\n'+'流量: '+flowrate[0][23]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 25',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[24][0]+' dBm\n'+'信噪比：'+snr[24][0]+' dB\n'+'流量: '+flowrate[0][24]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 26',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[25][0]+' dBm\n'+'信噪比：'+snr[25][0]+' dB\n'+'流量: '+flowrate[0][25]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 27',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[26][0]+' dBm\n'+'信噪比：'+snr[26][0]+' dB\n'+'流量: '+flowrate[0][26]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 28',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[27][0]+' dBm\n'+'信噪比：'+snr[27][0]+' dB\n'+'流量: '+flowrate[0][27]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 29',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[28][0]+' dBm\n'+'信噪比：'+snr[28][0]+' dB\n'+'流量: '+flowrate[0][28]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 30',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[29][0]+' dBm\n'+'信噪比：'+snr[29][0]+' dB\n'+'流量: '+flowrate[0][29]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 31',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[30][0]+' dBm\n'+'信噪比：'+snr[30][0]+' dB\n'+'流量: '+flowrate[0][30]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 32',
+          label: {
+            show: true,
+             formatter: [
+	'信号强度: '+getlevel[31][0]+' dBm\n'+'信噪比：'+snr[31][0]+' dB\n'+'流量: '+flowrate[0][31]+' kbps',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2,
+          }
+        },
+
+       
+      ],
+      lineStyle: {
+        opacity: 0.9,
+        width: 3,
+        curveness: 0
+      },
+      emphasis: {
+          focus: 'adjacency',
+          lineStyle: {
+            width: 20
+          },
+      label: {
+	fontSize:20
+      },
+	edgeLabel: {
+        fontSize: 20
+      }
+        }
+    }
+  ]
+  
+};
+
+
+
+    if (option && typeof option === 'object') {
+      myChart.setOption(option);
+    }
+
+    window.addEventListener('resize', myChart.resize);
+  </script>
+</body>
+</html>

@@ -1,0 +1,539 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>宽带配置</title>
+<meta http-equiv="Expires" content="0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-control" content="no-cache">
+<meta http-equiv="Cache" content="no-cache">
+	<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all"/>
+	<link href="css/my_style.css" rel="stylesheet" type="text/css" media="all"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script>	
+
+function jump() {
+            const hostname = window.location.hostname;
+		window.location.href="http://"+hostname+":100/freqInfo.html";
+        }
+
+
+
+
+    var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function(){
+	if(xhr.readyState == 4&&xhr.status == 200){ //根据返回状态值是否正确若成功执行下面语句
+	var xmlDoc = xhr.responseXML;//取得返回请求
+	var root = xmlDoc.getElementsByTagName("root")[0];//识别根标志root
+	var data = root.getElementsByTagName("data");//识别子标志data
+	var state=0;
+//根据id改变相应div的值
+if(typeof data[1] === "undefined"||typeof data[9] === "undefined"){
+	xhr.open('GET', "cgi-bin/cmeshInfo", true);//打开后端文件的路径
+    	xhr.send();//向后端发送请求
+}
+
+	
+
+	document.getElementById("rf_freq").value = data[1].childNodes[0].nodeValue;
+
+/*if(document.getElementById("rf_freq").value!="-1"){
+
+	document.getElementById("rf_freq02input").value = "";
+}
+else{
+	document.getElementById("rf_freq02input").value = data[2].childNodes[0].nodeValue;
+}*/
+	document.getElementById("m_chanbw").value = data[2].childNodes[0].nodeValue;
+
+	document.getElementById("m_rate").value = data[3].childNodes[0].nodeValue;
+
+	document.getElementById("m_distance").value = data[4].childNodes[0].nodeValue;
+
+	document.getElementById("m_ssid").value = data[5].childNodes[0].nodeValue;
+
+	document.getElementById("m_bcastmode").value = data[6].childNodes[0].nodeValue;
+
+	document.getElementById("workmode").value = data[7].childNodes[0].nodeValue;
+	if(data[8].childNodes[0].nodeValue==1)
+	{
+		document.getElementById("devicetype").innerHTML = "车载台";
+		document.getElementById("devicetype").value=1;
+		var m_txpowerid = document.getElementById("m_txpower");
+		for(var i=-10;i<=40;i++)  //遍历根节点下的所有子节点
+            {
+          	  // <option><?= $i ?>dBm<?php echo $i?></option>
+				var option = document.createElement("option");
+                option.text = i+"dBm";
+                option.value = 39-i;
+                m_txpowerid.appendChild(option);
+            }
+	}
+	if(data[8].childNodes[0].nodeValue==2)
+	{
+		document.getElementById("devicetype").innerHTML = "背负台";
+		document.getElementById("devicetype").value=2;
+		var m_txpowerid = document.getElementById("m_txpower");
+		for(var i=-10;i<=37;i++)  //遍历根节点下的所有子节点
+            {
+          	  // <option><?= $i ?>dBm<?php echo $i?></option>
+				var option = document.createElement("option");
+                option.text = i+"dBm";
+                option.value = 39-i;
+                m_txpowerid.appendChild(option);
+            }
+	}
+	if(data[8].childNodes[0].nodeValue==3)
+	{
+		document.getElementById("devicetype").innerHTML = "手持台";
+		document.getElementById("devicetype").value=3;
+		var m_txpowerid = document.getElementById("m_txpower");
+		for(var i=23;i<=43;i++)  //遍历根节点下的所有子节点
+            {
+          	  // <option><?= $i ?>dBm<?php echo $i?></option>
+				var option = document.createElement("option");
+                option.text = i+"dBm";
+                option.value = i;
+                m_txpowerid.appendChild(option);
+            }
+	}
+	document.getElementById("m_txpower").value = data[0].childNodes[0].nodeValue;
+/* sdd by sdg  增加对路由协议、空余滤波、时隙长度*/
+	document.getElementById("m_route").value = data[9].childNodes[0].nodeValue;
+	document.getElementById("m_slot_len").value = data[10].childNodes[0].nodeValue;
+	//document.getElementById("m_filter").value = data[11].childNodes[0].nodeValue;
+/* 传输模式、自适应频率范围 */
+	document.getElementById("m_trans_mode").value = data[11].childNodes[0].nodeValue;
+	document.getElementById("m_select_freq1").value = data[12].childNodes[0].nodeValue;
+	document.getElementById("m_select_freq2").value = data[13].childNodes[0].nodeValue;
+	document.getElementById("m_select_freq3").value = data[14].childNodes[0].nodeValue;
+	document.getElementById("m_select_freq4").value = data[15].childNodes[0].nodeValue;
+	document.getElementById("power_level").value = data[16].childNodes[0].nodeValue;
+	document.getElementById("power_attenuation").value = data[17].childNodes[0].nodeValue;
+	document.getElementById("rx_channel_mode").value = data[18].childNodes[0].nodeValue;
+
+
+//状态位，post发送文件后状态位后端置1,前端按钮锁定，定时向后端发送get请求，每次请求后清除定时器避免一直发送，当检测状态位是0时解锁按钮。
+//	if(data[12].childNodes[0].nodeValue==1|data[13].childNodes[0].nodeValue==1|data[14].childNodes[0].nodeValue==1|data[15].childNodes[0].nodeValue==1
+//	|data[16].childNodes[0].nodeValue==1|data[17].childNodes[0].nodeValue==1|data[18].childNodes[0].nodeValue==1|data[19].childNodes[0].nodeValue==1
+//	|data[20].childNodes[0].nodeValue==1|data[21].childNodes[0].nodeValue==1|data[22].childNodes[0].nodeValue==1){
+//		state=1;
+//	}
+
+	for(var i=19;i<data.length;i++)
+	{
+		if(data[i].childNodes[0].nodeValue==1) {
+			state=1;
+			break;
+		}
+	}
+
+
+
+		if(state==1){
+	document.getElementById("btn_mesh_update").type="text";
+	document.getElementById("btn_mesh_update").value="修改中";
+	document.getElementById("btn_mesh_update").style.backgroundColor="red";
+var intervalId;
+
+intervalId = setInterval(function () {
+    xhr.open('GET', "cgi-bin/cmeshInfo", true);//打开后端文件的路径
+    xhr.send();//向后端发送请求
+	clearInterval(intervalId);//清除定时器
+}, 2000);
+
+				}
+		if(state==0){
+	document.getElementById("btn_mesh_update").type="submit";
+	document.getElementById("btn_mesh_update").value="提交修改";
+	document.getElementById("btn_mesh_update").style.backgroundColor="blue";
+
+				}
+
+		}
+	}
+
+    xhr.open('GET', "cgi-bin/cmeshInfo", true);//打开后端文件的路径
+    xhr.send();//向后端发送请求
+
+</script> 
+</head>
+<body>
+
+<form class="form-horizontal" action="/cgi-bin/cmeshInfo" method="post">
+	<div class="panel panel-info  col-xs-offset-1 col-sm-10">
+
+		<div class="panel-heading row">
+			<div  class="col-sm-4 panel-title" style="padding: 0px;" >宽带配置</div>
+			<div id="message" class="panel-title col-sm-3 " style="padding: 0px;color:red;display: none" ></div>
+		</div>
+		<div class="panel-body col-xs-offset-2 col-sm-8">
+			<div class="form-group ">
+				<label class="col-sm-3 control-label" >设备型号:</label>
+				
+				<lable class="col-sm-1 control-label"id="devicetype" name="devicetype">10</lable>
+				
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label" >工作模式:</label>
+				<div class="col-sm-9">
+					<select class="form-control" id="workmode" name="workmode">
+						<option value="1" selected>定频</option>
+						<!-- <option value="2">跳频</option> -->
+						<!-- <option value="3">认知跳频</option> -->
+						<option value="4">自适应选频</option>
+						<option value="5">空域滤波</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label" >输出功率:</label>
+				<div class="col-sm-9">
+					<select class="form-control" id="m_txpower" name="m_txpower">
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label" >工作频率:</label>
+				<div class="col-sm-9">
+					<!--<input  class="form-control"  type="text" id="_channel"/>-->
+					<select class="form-control" id="rf_freq" name="rf_freq">
+					</select>
+					<input type="hidden" id="hidden_rf_freq" >  
+				</div>
+			</div>
+
+		
+			
+			<div class="form-group">
+				<label class="col-sm-3 control-label"  >信号带宽:</label>
+				<div class="col-sm-9">
+					<select class="form-control" id="m_chanbw" name="m_chanbw">
+						<option value="0">20MHz</option>
+						<option value="1">10MHz</option>
+						<option value="2">5MHz</option>					
+						<option value="3">2.5MHz</option>
+						<!-- <option value="4">1.2MHz</option> -->					
+					</select>
+
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label"  >用户速率:</label>
+				<div class="col-sm-9">
+					<select class="form-control" id="m_rate" name="m_rate">
+					</select>				
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label"  >通信距离:</label>
+				<div class="col-sm-9">
+					<div class="input-group">
+						<input type="text" class="form-control" placeholder="twitterhandle"  type="text" id="m_distance" name="m_distance">
+						<span class="input-group-addon">m</span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+                 <label class="col-sm-3 control-label" >子网编号:</label>
+                 <div class="col-sm-9">
+                     <input  class="form-control"  type="text" id="m_ssid" name="m_ssid"/>
+                 </div>
+            </div>
+			<div class="form-group">
+				<label class="col-sm-3 control-label"  >组播传输（功能关闭）:</label>
+				<div class="col-sm-9">
+					<select class="form-control" id="m_bcastmode" name="m_bcastmode">
+						<!-- 组播模式先关闭 -->
+						<option value="1">开启</option>    
+						<option value="1" selected>关闭</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-sm-3 control-label"  >路由协议:</label>
+				<div class="col-sm-9">
+					<select class="form-control" id="m_route" name="m_route">
+						<option value="1">OLSR路由</option>	
+						<option value="2">AODV路由</option>					
+						<option value="3" selected>抗干扰路由</option>
+					</select>
+
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-sm-3 control-label"  >时隙长度:</label>
+				<div class="col-sm-9">
+					<select class="form-control" id="m_slot_len" name="m_slot_len">
+						<option value="0">0.5</option>
+						<option value="1">1</option>
+						<option value="2">1.25</option>
+						<option value="3">2</option>					
+					</select>
+				</div>
+			</div>
+
+			<!-- <div class="form-group">
+				<label class="col-sm-3 control-label"  >空域滤波:</label>
+				<div class="col-sm-9">
+					<select class="form-control" id="m_filter" name="m_filter">						
+						<option value="1" >关闭</option>
+						<option value="0">开启</option>
+					</select>
+				</div>
+			</div> -->
+
+			<div class="form-group">
+				<label class="col-sm-3 control-label"  >传输模式:</label>
+				<div class="col-sm-9">
+					<select class="form-control" id="m_trans_mode" name="m_trans_mode">						
+						<option value="0"  selected>正常模式</option>
+						<option value="1">发送模式</option>
+						<option value="2" >接收模式</option>
+						<option value="3">测试模式</option>
+						<option value="4">单音模式</option>
+
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-sm-3 control-label"  >自适应选频频率:</label>
+				<div class="col-sm-9" id="adaptive-freq-inputs" style="display: flex; gap: 10px;">
+					<input class="form-control" type="number" id="m_select_freq1" name="m_select_freq1"	min="225" max="2500" placeholder="225-2500MHz" />
+					<input class="form-control" type="number" id="m_select_freq2" name="m_select_freq2" min="225" max="2500" placeholder="225-2500MHz" />
+					<input class="form-control" type="number" id="m_select_freq3" name="m_select_freq3" min="225" max="2500" placeholder="225-2500MHz" />
+					<input class="form-control" type="number" id="m_select_freq4" name="m_select_freq4" min="225" max="2500" placeholder="225-2500MHz" />
+
+					<!-- <input type="hidden" id="hidden_select_freq_1" >
+					<input type="hidden" id="hidden_select_freq_2" >
+					<input type="hidden" id="hidden_select_freq_3" >
+					<input type="hidden" id="hidden_select_freq_4" >  -->
+					
+
+				</div>
+				<!-- style="flex: 1;" -->
+			</div>	
+
+			<div class="form-group">
+				<label class="col-sm-3 control-label"  >功放档位:</label>
+				<div class="col-sm-9">
+					<select class="form-control" id="power_level" name="power_level">						
+						<option value="0">2.5w</option>
+						<option value="1">5w</option>
+						<option value="2">10w</option>
+						<option value="3">20w</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-sm-3 control-label"  >功放衰减:</label>
+				<div class="col-sm-9">
+					<select class="form-control" id="power_attenuation" name="power_attenuation">
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-sm-3 control-label"  >接收通道模式:</label>
+				<div class="col-sm-9">
+					<select class="form-control" id="rx_channel_mode" name="rx_channel_mode">
+						<option value="0">4通道接收</option>
+						<option value="1">RX1单收</option>
+						<option value="2">RX2单收</option>
+						<option value="3">RX3单收</option>
+						<option value="4">RX4单收</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<input  class="col-sm-offset-3 col-sm-4 btn btn-info" type="submit" value="修改" id="btn_mesh_update"/><!--submit-->
+			</div>
+		</div>
+	</div>
+</form>
+<button onclick="jump()">频率集设置</button>
+
+<script>
+
+// 设置工作模式切换处理
+function setupWorkModeHandler() {
+    var workModeSelect = document.getElementById("workmode");
+    var freqSelect = document.getElementById("rf_freq");
+    var freqInputs = document.querySelectorAll("#adaptive-freq-inputs input");
+    var hiddenFreqInput = document.getElementById("hidden_rf_freq");
+    var hiddenSelFreq_1 = document.getElementById("hidden_select_freq_1");
+    var hiddenSelFreq_2 = document.getElementById("hidden_select_freq_2");
+    var hiddenSelFreq_3 = document.getElementById("hidden_select_freq_3");
+    var hiddenSelFreq_4 = document.getElementById("hidden_select_freq_4");
+
+	
+
+    var selectFreq1 = document.getElementById("m_select_freq1");
+    var selectFreq2 = document.getElementById("m_select_freq2");
+    var selectFreq3 = document.getElementById("m_select_freq3");
+	
+	
+    function updateControls() {
+        var mode = workModeSelect.value;
+		console.log("Current mode:", mode);
+		if (mode === "4") {
+            // 自适应选频模式
+            // 禁用 rf_freq 下拉框，不清除其值
+            freqSelect.setAttribute("disabled", "disabled");
+            freqSelect.removeAttribute("name");
+
+            // 设置隐藏字段，用于提交 rf_freq（保留原值）
+            hiddenFreqInput.setAttribute("name", "rf_freq");
+            hiddenFreqInput.value = freqSelect.value;
+
+            // 启用自适应选频输入框
+            freqInputs.forEach(input => {
+                input.removeAttribute("disabled");
+                input.removeAttribute("readOnly");
+                input.setAttribute("required", "required");
+                input.style.backgroundColor = ""; // 恢复背景色
+            });
+           // 移除隐藏字段，不提交
+//            hiddenSelFreq_1.removeAttribute("name");
+ //           hiddenSelFreq_1.value = "";
+ //           hiddenSelFreq_2.removeAttribute("name");
+ //           hiddenSelFreq_2.value = "";
+ //           hiddenSelFreq_3.removeAttribute("name");
+ //           hiddenSelFreq_3.value = "";
+ //           hiddenSelFreq_4.removeAttribute("name");
+ //           hiddenSelFreq_4.value = "";
+
+
+        } else if (mode === "1") {
+            // 定频模式
+            freqSelect.removeAttribute("disabled");
+            freqSelect.setAttribute("name", "rf_freq");
+
+            // 移除隐藏字段，不提交
+            hiddenFreqInput.removeAttribute("name");
+            hiddenFreqInput.value = "";
+
+            // 禁用自适应频率输入框，但保留原值
+            // 使用 readOnly 代替 disabled，确保数据能提交，维持后端 C 代码的索引映射
+            freqInputs.forEach(input => {
+                input.removeAttribute("disabled");
+                input.setAttribute("readOnly", "readOnly");
+                input.removeAttribute("required");
+                input.style.backgroundColor = "#eee"; // 视觉上模拟 disabled
+            });
+
+            // 为定频模式的频率选择框添加 name 属性
+            //selectFreq1.setAttribute("name", "m_select_freq1");
+            //selectFreq2.setAttribute("name", "m_select_freq2");
+            //selectFreq3.setAttribute("name", "m_select_freq3");			
+        }
+		else; 
+
+        //console.log("selectFreq1 name:", selectFreq1.getAttribute("name"));
+        //console.log("selectFreq2 name:", selectFreq2.getAttribute("name"));
+       // console.log("selectFreq3 name:", selectFreq3.getAttribute("name"));
+    }
+    // 绑定事件
+    workModeSelect.addEventListener("change", updateControls);
+
+    // 页面加载时初始化一次
+    updateControls();
+}
+
+// 设置频率输入验证
+function setupFrequencyValidation() {
+    var freqInputs = document.querySelectorAll("#adaptive-freq-inputs input");
+    
+    freqInputs.forEach(function(input) {
+        input.addEventListener("input", function() {
+            var value = parseInt(this.value);
+            if (isNaN(value)) {
+                return;
+            }
+            
+            // 强制限制范围
+            if (value < 225) {
+                this.value = 225;
+            } else if (value > 2500) {
+                this.value = 2500;
+            }
+        });
+        
+        // 失去焦点时验证
+        input.addEventListener("blur", function() {
+            var value = parseInt(this.value);
+            if (isNaN(value) || value < 225 || value > 2500) {
+                this.classList.add("is-invalid");
+            } else {
+                this.classList.remove("is-invalid");
+            }
+        });
+    });
+}
+
+    // var array="";
+    window.onload =function () {
+        /*var m_txpowerid = document.getElementById("m_txpower");
+		var devicetypeid = document.getElementById("devicetype");
+		var pm;
+		if(devicetypeid.value==1){pm=40;}
+		if(devicetypeid.value==2){pm=37;}
+		if(devicetypeid.value==3){pm=33;}
+        for(var i=-10;i<=pm;i++)  //遍历根节点下的所有子节点
+            {
+          	  // <option><?= $i ?>dBm<?php echo $i?></option>
+				var option = document.createElement("option");
+                option.text = i+"dBm";
+                option.value = 39-i;
+                m_txpowerid.appendChild(option);
+            }*/
+
+	var rf_freqid= document.getElementById("rf_freq");
+
+	for(var i=225;i<=2500;i+=1){   //225MHz---12500MHz
+		//if((i>=450&&i<=650)||(i>=1000&&i<=1500)){
+		var option = document.createElement("option");
+		option.text = i+"MHz";
+                option.value = i;
+                rf_freqid.appendChild(option);}
+		//}
+
+        var m_rateid = document.getElementById("m_rate");
+        var m_rateoption = document.createElement("option");
+//        m_rateoption.text = "1级";
+//        m_rateoption.value = "1";
+//        m_rateid.appendChild(m_rateoption);
+
+		for(var i=0;i<=7;i++)  //遍历根节点下的所有子节点
+		{
+			// <option><?= $i ?>dBm<?php echo $i?></option>
+			var option = document.createElement("option");
+			option.text = i+"级";
+			option.value = i;
+			// option.setAttribute("name","xxxx");
+			m_rateid.appendChild(option);
+		}
+
+		var powerAttenuationSelect = document.getElementById("power_attenuation");
+		for(var pa = 0; pa <= 70; pa++) {
+			var paOption = document.createElement("option");
+			paOption.text = pa+"dB";
+			paOption.value = pa;
+			powerAttenuationSelect.appendChild(paOption);
+		}
+
+		setupWorkModeHandler();
+		//setupFrequencyValidation();
+	}
+
+//document.addEventListener("DOMContentLoaded", function () {
+//    setupWorkModeHandler();
+//});
+ 
+</script>
+</body>
+</html>

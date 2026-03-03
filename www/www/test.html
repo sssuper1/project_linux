@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html lang="en" style="height: 100%">
+<head>
+  <meta charset="utf-8">
+</head>
+<body style="height: 100%; margin: 0">
+  <div id="container" style="height: 100%"></div>
+
+  
+  <script type="text/javascript" src="./echarts.js"></script>
+  
+
+
+  <script type="text/javascript">
+var dev1data = [];
+var isdisplay=[];
+var i=0;
+isdisplay[0]='1';
+
+dev1data[0]="there";
+    var dom = document.getElementById('container');
+    var myChart = echarts.init(dom, null, {
+      renderer: 'canvas',
+      useDirtyRect: false
+    });
+    var app = {};
+    
+    var option;
+
+    option = {
+  title: {
+    text: 'Basic Graph'
+  },
+  tooltip: {},
+  animationDurationUpdate: 1500,
+  animationEasingUpdate: 'quinticInOut',
+  series: [
+    {
+      type: 'graph',
+      layout: 'none',
+      symbolSize: 50,
+      roam: true,
+      label: {
+        show: true,
+
+    
+      },
+      edgeSymbol: ['circle', 'arrow'],
+      edgeSymbolSize: [4, 10],
+      edgeLabel: {
+        fontSize: 20
+      },
+      data: [
+        {
+          id:'Node 1',
+          name: 'dev1',
+          value:'192.123.11',
+          x: 550,
+          y: 300,
+          label:{
+            show:true,
+                formatter: [
+        'dev1',
+    ].join('\n'),
+          }
+        },
+        {
+          id:'Node 2',
+          name: 'dev2',
+          value:'124.117.43',
+          x: 723,
+          y: 200,
+          label:{
+            show:true,
+                formatter: [
+        'dev2',
+    ].join('\n'),
+          }
+        },
+        {
+          name: 'Node 3',
+          x: 377,
+          y: 200
+        },
+        {
+          name: 'Node 4',
+          x: 400,
+          y: 400
+        }
+      ],
+      // links: [],
+      links: [
+        {
+          source: 'Node 1',
+          target: 'Node 2',
+          label: {
+            show: true,
+             formatter: [
+        dev1data[0]+'level:11\n'+'SDN:0.85',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.2
+          }
+        },
+        {
+          source: 'Node 2',
+          target: 'Node 1',
+          label: {
+            show: true,
+            formatter: [
+        'level:13\n'+'SDN:0.75',
+    ].join('\n'),
+          },
+          lineStyle: {
+            width: 3,
+            curveness: 0.1
+          }
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 3',
+
+          lineStyle: {
+          opacity: isdisplay[0],
+          }
+        },
+        {
+          source: 'Node 2',
+          target: 'Node 3'
+        },
+        {
+          source: 'Node 2',
+          target: 'Node 4',
+          label: {
+            show: true,
+            formatter: [
+        'level:13\n'+'SDN:0.75',
+    ].join('\n'),
+          },
+          
+        },
+        {
+          source: 'Node 1',
+          target: 'Node 4'
+        }
+      ],
+      lineStyle: {
+        opacity: 0.9,
+        width: 3,
+        curveness: 0
+      },
+      emphasis: {
+          focus: 'adjacency',
+          lineStyle: {
+            width: 20
+          }
+        }
+    }
+  ]
+  
+};
+
+
+
+    if (option && typeof option === 'object') {
+      myChart.setOption(option);
+    }
+
+    window.addEventListener('resize', myChart.resize);
+  </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+
+/*.panel{*/
+/*border-radius:40px;*/
+/*}*/
+.col-sm-1,.col-sm-2,.col-sm-3,.col-sm-4,.col-sm-5,.col-sm-6,.col-sm-7,.col-sm-8,.col-sm-9{
+    /*margin: 0px;*/
+    padding: 1px;
+}
+#adaptive-freq-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+#adaptive-freq-inputs input {
+    flex: 1;
+    min-width: 0; /* 防止flex布局溢出 */
+}
+
+.readonly-style {
+    background-color: #eee;
+    pointer-events: none;
+    color: #777;
+}
+/*#looktable .table{*/
+    /*padding: 1px;*/
+/*}*/
+/*#looktable .table tr{*/
+    /*padding: 1px;*/
+/*}*/

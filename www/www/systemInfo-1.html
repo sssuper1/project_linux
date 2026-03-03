@@ -1,0 +1,289 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>信息</title>
+<meta http-equiv="Expires" content="0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-control" content="no-cache">
+<meta http-equiv="Cache" content="no-cache">
+	<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all"/>
+	<link href="css/my_style.css" rel="stylesheet" type="text/css" media="all"/>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script>
+
+
+    var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function(){
+	if(xhr.readyState == 4&&xhr.status == 200){ //根据返回状态值是否正确若成功执行下面语句
+	var xmlDoc = xhr.responseXML;//取得返回请求
+	var root = xmlDoc.getElementsByTagName("root")[0];//识别根标志root
+	var data = root.getElementsByTagName("data");//识别子标志data
+
+//根据id改变相应div的值
+
+	document.getElementById("ipaddr").innerText = data[0].childNodes[0].nodeValue;
+	document.getElementById("runtimeid").innerText = data[1].childNodes[0].nodeValue;
+	document.getElementById("device").innerHTML = data[2].childNodes[0].nodeValue;
+	document.getElementById("g_ver").innerHTML = data[3].childNodes[0].nodeValue;
+	document.getElementById("rf_freq").innerHTML = data[4].childNodes[0].nodeValue;
+	document.getElementById("m_chanbw").innerHTML = data[5].childNodes[0].nodeValue+"Mhz";
+	document.getElementById("m_txpower").innerHTML = data[6].childNodes[0].nodeValue+"dBmW";
+	document.getElementById("m_rate").innerHTML = data[7].childNodes[0].nodeValue;
+	document.getElementById("m_type").innerHTML = data[8].childNodes[0].nodeValue;
+
+
+
+var tmptd = 
+            "<tr>\n" +
+            "<th>设备ID</th>\n" +
+						"<th>节点IP</th>\n" +
+						"<th>时间抖动</th>\n" +
+						"<th>信噪比</th>\n" +
+						"<th>信号强度</th>\n" +
+						"<th>信道质量</th>\n" +
+						"<th>物理层收速率统计(Mbps)</th>\n" +
+						"<th>错误包</th>\n" +
+						"<th>UCDS骨干</th>\n" +
+						"<th>底噪</th>\n" +
+            "</tr>";
+var tmptd2 = "<tr>\n" +
+            					"<th>设备ID</th>\n" +
+						"<th>节点IP</th>\n" +
+
+            "</tr>";
+var tmptd3 = "<tr>\n" +
+
+            "</tr>";
+//列表初始化
+m_list_table.innerHTML=tmptd;
+m_list_table2.innerHTML=tmptd2;
+freq_table.innerHTML=tmptd3;
+//暂时在数据库预设了三个设备的存储空间，tr 三个td /td /tr为一个设备的一组数据
+var i;
+var v;
+
+// 遍历32个可能的设备（实际数据库支持32个设备）
+for (var i = 0; i < 32; i++) {
+    // 计算当前设备的各字段偏移量
+    var idOffset = 9 + i;            // id1-id32
+    var ipOffset = 9 + 32 + i;       // ip1-ip32
+    var timejitterOffset = 9 + 32*2 + i; // timejitter1-timejitter32
+    var snrOffset = 9 + 32*3 + i;    // snr1-snr32
+    var rssiOffset = 9 + 32*4 + i;   // rssi1-rssi32
+    var linkqualityOffset = 9 + 32*5 + i; // linkquality1-linkquality32
+    var goodOffset = 9 + 32*6 + i;   // good1-good32
+    var badOffset = 9 + 32*7 + i;    // bad1-bad32
+    var ucdsOffset = 9 + 32*8 + i;   // ucds1-ucds32
+    var noiseOffset = 9 + 32*9 + i;  // noise1-noise32
+
+    // 检查设备是否存在（通过IP或ID是否非0）
+    if (data[ipOffset].childNodes[0].nodeValue !== "0") {
+        // 物理层速率计算（根据linkquality选择系数v）
+        var linkquality = parseInt(data[linkqualityOffset].childNodes[0].nodeValue);
+        var v;
+        switch (linkquality) {
+            case 0: v = 672; break;
+            case 1: v = 896; break;
+            case 2: v = 1344; break;
+            case 3: v = 1792; break;
+            case 4: v = 2688; break;
+            case 5: v = 3584; break;
+            case 6: v = 4032; break;
+            case 7: v = 5376; break;
+            default: v = 0;
+        }
+        var rate = (parseInt(data[goodOffset].childNodes[0].nodeValue) * v * 8 / 100000000).toFixed(2);
+
+        // 填充表格行
+        m_list_table.innerHTML += '<tr>' +
+            '<td>' + data[idOffset].childNodes[0].nodeValue + '</td>' +
+            '<td>' + data[ipOffset].childNodes[0].nodeValue + '</td>' +
+            '<td>' + data[timejitterOffset].childNodes[0].nodeValue + '</td>' +
+            '<td>' + data[snrOffset].childNodes[0].nodeValue + '</td>' +
+            '<td>' + data[rssiOffset].childNodes[0].nodeValue + '</td>' +
+            '<td>' + linkquality + '</td>' +
+            '<td>' + rate + '</td>' +
+            '<td>' + data[badOffset].childNodes[0].nodeValue + '</td>' +
+            '<td>' + data[ucdsOffset].childNodes[0].nodeValue + '</td>' +
+            '<td>' + data[noiseOffset].childNodes[0].nodeValue + '</td>' +
+            '</tr>';
+    }
+}
+
+
+
+for(i=0;i<32;i+=1){
+
+	if(data[i+9+32*11].childNodes[0].nodeValue!=0){
+	m_list_table2.innerHTML += '<tr>'+
+'<td>'+data[i+9+32*10].childNodes[0].nodeValue+'</td>'+
+'<td>'+data[i+9+32*11].childNodes[0].nodeValue+'</td>'+
+'</tr>';
+	}
+}
+
+for(i=0;i<32;i+=1){
+
+	if(data[i+9+32*12].childNodes[0].nodeValue!=0){
+	freq_table.innerHTML += '<tr>'+
+'<td>'+data[i+9+32*12].childNodes[0].nodeValue+'</td>'+
+'</tr>';
+	}
+}
+
+		}
+	}
+var intervalId;
+
+intervalId = setInterval(function () {
+    xhr.open('GET', "cgi-bin/csystemInfo", true);//打开后端文件的路径
+    xhr.send();//向后端发送请求
+}, 1000);
+    xhr.open('GET', "cgi-bin/csystemInfo", true);//打开后端文件的路径
+    xhr.send();//向后端发送请求
+
+
+
+</script>
+
+</head>
+<body>
+<form class="form-horizontal" action="/cgi-bin/csystemInfo" method="get">
+	<!--<form class="form"-->
+	<div class="panel panel-danger  col-xs-offset-1 col-sm-10" style="border-color: #bce8f1;">
+		<div class="panel-heading  row" style="background-color:#d9edf7;color: #31708f;border-color: #bce8f1;">
+		<h1 class ="panel-title"style="font-size: 28px;">Wideband Network Waveform</h1>
+		</div>
+	</div>
+	<div class="panel panel-danger  col-xs-offset-1 col-sm-10">
+		
+		<div class="panel-heading  row">
+			<h3  class="panel-title">系统参数</h3>
+		</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<div class="col-sm-3 ">
+					<label class="col-sm-5 control-label" style="text-align: right">IP地址 : </label>
+					<label class="col-sm-7 control-label"  id="ipaddr" style="text-align: left"></label>
+				</div>
+				<div class="col-sm-5">
+					<label class="col-sm-5  control-label" style="text-align: right">运行时间 : </label>
+					<label class="col-sm-7  control-label" id="runtimeid" style="text-align: left"></label>
+				</div>
+				<div class="col-sm-4">
+					<label class="col-sm-5 control-label " style="text-align: right" >设备号 : </label>
+					<label class="col-sm-7  control-label"  id="device"style="text-align: left"></label>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-danger  col-xs-offset-1 col-sm-10">
+		<div class="panel-heading  row">
+			<h3  class="panel-title">参数</h3>
+		</div>
+		<div class="panel-body">
+			<div class="panel panel-success  col-sm-5">
+				<div class="panel-heading">
+					<h3  class="panel-title">工作参数</h3>
+				</div>
+				<div class="panel-body">
+					<div class="form-group row">
+						<label >固件版本:</label>
+						<label id="g_ver" >暂无数据</label>
+					</div>
+					<div class="form-group row">
+						<label >工作频率:</label>
+						<label id="rf_freq" >暂无数据</label>
+					</div>
+					<div class="form-group row">
+						<label >信号带宽:</label>
+						<label id="m_chanbw" >暂无数据</label>
+					</div>
+					<div class="form-group row">
+						<label >发射功率:</label>
+						<label  id="m_txpower">暂无数据</label>
+					</div>
+					<div class="form-group row">
+						<label >业务速率等级:</label>
+						<label id="m_rate"  >暂无数据</label>
+					</div>
+					<div class="form-group row">
+						<label  >节点类型:</label>
+						<label id="m_type" >mesh</label>
+					</div>
+				</div>
+			</div>
+
+
+		</div>
+	</div>
+
+	<div class="panel panel-danger  col-xs-offset-1 col-sm-10">
+		<div class="panel-heading  row">
+			<h3  class="panel-title">设备列表</h3>
+		</div>
+		<div class="panel-body">
+			<div class="panel panel-success   col-sm-10">
+				<div class="panel-heading">
+					<h3  class="panel-title">一跳邻居列表</h3>
+				</div>
+				<table class="table" id="m_list_table">
+						<tr>UCDS算法根据网络连通情况分布式推举若干节点作为网络骨干。通过骨干转发，降低控制信令网络拥塞</tr>
+					<tr>
+						<th>设备ID</th>
+						<th>节点IP</th>
+						<th>时间抖动</th>
+						<th>信噪比</th>
+						<th>信号强度</th>
+						<th>信道质量</th>
+						<th>物理层收速率统计(Mbps)</th>
+						<th>错误包</th>
+						<th>UCDS骨干</th>
+						<th>底噪</th>
+					</tr>
+
+
+				</table>
+			</div>
+			<div class="panel panel-success   col-sm-10">
+				<div class="panel-heading">
+					<h3  class="panel-title">二跳邻居列表</h3>
+				</div>
+				<table class="table" id="m_list_table2">
+					<tr>
+						<th>设备ID</th>
+						<th>节点IP</th>
+					</tr>
+
+				</table>
+			</div>
+
+		</div>
+
+	</div>
+	<div class="panel panel-danger  col-xs-offset-1 col-sm-10">
+		<div class="panel-heading  row">
+			<h3  class="panel-title">跳频频点集</h3>
+		</div>
+		<div class="panel-body">
+			<div class="panel panel-success   col-sm-10">
+				<div class="panel-heading">
+					<h3  class="panel-title">频点列表</h3>
+				</div>
+				<table class="table" id="freq_table">
+					<tr>
+						<th>暂无数据</th>
+					</tr>
+
+				</table>
+			</div>
+
+		</div>
+
+	</div>
+</form>
+
+</body>
+</html>

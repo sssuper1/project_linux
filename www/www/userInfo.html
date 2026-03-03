@@ -1,0 +1,123 @@
+<!DOCTYPE HTML>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <link href="/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all"/>
+    <link href="/css/my_style.css" rel="stylesheet" type="text/css" media="all"/>
+    <link href="/css/dialog.css" rel="stylesheet" type="text/css" media="all"/>
+    <script>
+
+
+
+    var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function(){
+	if(xhr.readyState == 4&&xhr.status == 200){ //根据返回状态值是否正确若成功执行下面语句
+	var xmlDoc = xhr.responseXML;//取得返回请求
+	var root = xmlDoc.getElementsByTagName("root")[0];//识别根标志root
+	var data = root.getElementsByTagName("data");//识别子标志data
+	var state=0;
+//根据id改变相应div的值
+
+	if(typeof data[0] === "undefined"||typeof data[1] === "undefined"||typeof data[2] === "undefined"||typeof data[3] === "undefined"){
+	xhr.open('GET', "cgi-bin/cuserInfo", true);//打开后端文件的路径
+    	xhr.send();//向后端发送请求
+	}
+
+	
+	document.getElementById("m_ip").value = data[0].childNodes[0].nodeValue;
+
+	document.getElementById("m_dhcpStart").value = data[1].childNodes[0].nodeValue;
+
+	document.getElementById("m_dhcpGateway").value = data[2].childNodes[0].nodeValue;
+
+	document.getElementById("m_dhcpDns").value = data[3].childNodes[0].nodeValue;
+
+	if(data[4].childNodes[0].nodeValue==1){
+	state=1;
+	}
+
+		if(state==1){
+	document.getElementById("btn1").type="text";
+	document.getElementById("btn1").value="修改中";
+	document.getElementById("btn1").style.backgroundColor="red";
+var intervalId;
+
+intervalId = setInterval(function () {
+    xhr.open('GET', "cgi-bin/cuserInfo", true);//打开后端文件的路径
+    xhr.send();//向后端发送请求
+	clearInterval(intervalId);//清除定时器
+}, 2000);
+
+				}
+		if(state==0){
+	document.getElementById("btn1").type="submit";
+	document.getElementById("btn1").value="提交修改";
+	document.getElementById("btn1").style.backgroundColor="blue";
+
+				}
+		}
+	}
+
+/*var intervalId;
+
+intervalId = setInterval(function () {
+    xhr.open('GET', "cgi-bin/cuserInfo", true);//打开后端文件的路径
+    xhr.send();//向后端发送请求
+}, 2000);*/
+
+    xhr.open('GET', "cgi-bin/cuserInfo", true);//打开后端文件的路径
+    xhr.send();//向后端发送请求
+
+
+
+    </script>
+
+
+</head>
+<body>
+<form class="form-horizontal" action="/cgi-bin/cuserInfo" method="post">
+    <div class="panel panel-info  col-xs-offset-1 col-sm-10">
+        <div class="panel-heading  row">
+            <h3  class="panel-title col-sm-4">系统配置</h3>
+            <div id="message" class="panel-title col-sm-3" style="padding: 0px;color:red;display: none" ></div>
+
+        </div>
+          <div class="panel-body col-xs-offset-2 col-sm-8">
+              <div class="form-group">
+                  <label class="col-sm-3 control-label" >宽带IP地址:</label>
+                  <div class="col-sm-9">
+                      <input  class="form-control"  type="text" id="m_ip" name="user_ip"/>
+                  </div>
+              </div>
+			  <div class="form-group">
+                  <label class="col-sm-3 control-label" >DHCP起始:</label>
+                  <div class="col-sm-9">
+                      <input  class="form-control"  type="text" id="m_dhcpStart" name="user_dps"/>
+                  </div>
+              </div>
+			  <div class="form-group">
+                  <label class="col-sm-3 control-label" >DHCP 网关:</label>
+                  <div class="col-sm-9">
+                      <input  class="form-control"  type="text" id="m_dhcpGateway" name="user_dpn"/>
+                  </div>
+              </div>
+			  <div class="form-group">
+                  <label class="col-sm-3 control-label" >DHCP DNS:</label>
+                  <div class="col-sm-9">
+                      <input  class="form-control"  type="text" id="m_dhcpDns" name="user_dns"/>
+                  </div>
+              </div>
+
+              <div class="form-group">
+                  <input  class="col-sm-offset-2 col-sm-4 btn btn-info" style="min-height: 25px;min-width: 50px"   type="submit"   id="btn1"/>
+              </div>
+          </div>
+    </div>
+
+</form>
+<script>
+
+
+</script>
+</body>
+</html>
